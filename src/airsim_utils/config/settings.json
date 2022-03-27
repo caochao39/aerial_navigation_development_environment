@@ -1,0 +1,66 @@
+{
+  "SettingsVersion": 1.2,
+  "SimMode": "Multirotor",
+  "ViewMode": "FlyWithMe",
+  "PhysicsEngineName": "ExternalPhysicsEngine",
+  "Vehicles": {
+    "drone0": {
+      "VehicleType": "SimpleFlight",
+      "AutoCreate": true,
+      "AllowAPIAlways": true,
+      "Cameras": {
+        "cam": {
+          "CaptureSettings": [
+            {
+              "ImageType": 0,
+              "Width": 640,
+              "Height": 360,
+              "FOV_Degrees": 100,
+              "AutoExposureSpeed": 100,
+              "AutoExposureBias": 0,
+              "AutoExposureMaxBrightness": 1,
+              "AutoExposureMinBrightness": 1,
+              "MotionBlurAmount": 0,
+              "TargetGamma": 1.5
+            },
+            {
+              "ImageType": 2,
+              "Width": 320,
+              "Height": 180,
+              "FOV_Degrees": 100,
+              "AutoExposureSpeed": 100,
+              "AutoExposureBias": 0,
+              "AutoExposureMaxBrightness": 1,
+              "AutoExposureMinBrightness": 1,
+              "MotionBlurAmount": 0,
+              "TargetGamma": 1.5
+            },
+            {
+              "ImageType": 5,
+              "Width": 320,
+              "Height": 180,
+              "FOV_Degrees": 100,
+              "AutoExposureSpeed": 100,
+              "AutoExposureBias": 0,
+              "AutoExposureMaxBrightness": 1,
+              "AutoExposureMinBrightness": 1,
+              "MotionBlurAmount": 0,
+              "TargetGamma": 1.5
+            }
+          ],
+          "X": 0.3,
+          "Y": 0.0,
+          "Z": 0.0,
+          "Pitch": 0.0,
+          "Roll": 0.0,
+          "Yaw": 0.0
+        }
+      }
+    }
+  },
+  "SubWindows": [
+    {"WindowID": 0, "ImageType": 0, "CameraName": "cam", "Visible": true},
+    {"WindowID": 1, "ImageType": 3, "CameraName": "cam", "Visible": true},
+    {"WindowID": 2, "ImageType": 5, "CameraName": "cam", "Visible": true}
+  ]
+}

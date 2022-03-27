@@ -1,0 +1,61 @@
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="example">
+
+  <link name="rgbd_camera">
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+
+    <inertial>
+      <mass value="1e-5" />
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+    </inertial>
+  </link>
+
+  <gazebo reference="rgbd_camera">
+    <sensor type="depth" name="rgbd_camera">
+      <update_rate>20.0</update_rate>
+      <camera name="head">
+        <horizontal_fov>1.65</horizontal_fov>
+        <image>
+          <width>320</width>
+          <height>180</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.2</near>
+          <far>30.0</far>
+        </clip>
+      </camera>
+      <plugin name="rgbd_camera_controller" filename="libgazebo_ros_depth_camera.so">
+        <alwaysOn>true</alwaysOn>
+          <baseline>0.2</baseline>
+          <cameraName>rgbd_camera</cameraName>
+          <imageTopicName>/rgbd_camera/color/image</imageTopicName>
+          <cameraInfoTopicName>/rgbd_camera/color/camera_info</cameraInfoTopicName>
+          <depthImageTopicName>/rgbd_camera/depth/image</depthImageTopicName>
+          <depthImageCameraInfoTopicName>/rgbd_camera/depth/camera_info</depthImageCameraInfoTopicName>
+          <pointCloudTopicName>/rgbd_camera/depth/points</pointCloudTopicName>
+          <frameName>rgbd_camera</frameName>
+          <pointCloudCutoff>0.1</pointCloudCutoff>
+          <pointCloudCutoffMax>6.0</pointCloudCutoffMax>
+          <distortionK1>0</distortionK1>
+          <distortionK2>0</distortionK2>
+          <distortionK3>0</distortionK3>
+          <distortionT1>0</distortionT1>
+          <distortionT2>0</distortionT2>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+</robot>

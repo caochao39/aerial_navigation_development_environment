@@ -1,0 +1,50 @@
+<launch>
+
+  <arg name="stateEstimationTopic" default="/state_estimation"/>
+  <arg name="trackingCamBackward" default="false"/>
+  <arg name="trackingCamXOffset" default="0"/>
+  <arg name="trackingCamYOffset" default="0"/>
+  <arg name="trackingCamZOffset" default="0"/>
+  <arg name="trackingCamScale" default="1.0"/>
+  <arg name="shiftGoalAtStart" default="false"/>
+  <arg name="goalYaw" default="0"/>
+  <arg name="goalX" default="0"/>
+  <arg name="goalY" default="0"/>
+  <arg name="goalZ" default="1.0"/>
+
+  <node pkg="control_tuner" type="controlTuner" name="controlTuner" required="true" output="screen">
+    <param name="stateEstimationTopic" value="$(arg stateEstimationTopic)" />
+    <param name="pubSkipNum" type="int" value="1" />
+    <param name="trackingCamBackward" value="$(arg trackingCamBackward)" />
+    <param name="trackingCamXOffset" value="$(arg trackingCamXOffset)" />
+    <param name="trackingCamYOffset" value="$(arg trackingCamYOffset)" />
+    <param name="trackingCamZOffset" value="$(arg trackingCamZOffset)" />
+    <param name="trackingCamScale" value="$(arg trackingCamScale)" />
+    <param name="lookAheadScale" type="double" value="0.2" />
+    <param name="minSpeed" type="double" value="0.5" />
+    <param name="maxSpeed" type="double" value="2.0" />
+    <param name="velXYGain" type="double" value="0.3" />
+    <param name="posXYGain" type="double" value="0.05" />
+    <param name="stopVelXYGain" type="double" value="0.2" />
+    <param name="stopPosXYGain" type="double" value="0.2" />
+    <param name="smoothIncrSpeed" type="double" value="0.75" />
+    <param name="maxRollPitch" type="double" value="30.0" />
+    <param name="yawGain" type="double" value="2.0" />
+    <param name="maxRateByYaw" type="double" value="60.0" />
+    <param name="posZGain" type="double" value="1.5" />
+    <param name="maxVelByPosZ" type="double" value="0.5" />
+    <param name="manualSpeedXY" type="double" value="2.0" />
+    <param name="manualSpeedZ" type="double" value="1.0" />
+    <param name="manualYawRate" type="double" value="60.0" />
+    <param name="stopDis" type="double" value="0.5" />
+    <param name="slowDis" type="double" value="2.0" />
+    <param name="joyDeadband" type="double" value="0.1" />
+    <param name="fixGoalYaw" type="bool" value="true" />
+    <param name="shiftGoalAtStart" value="$(arg shiftGoalAtStart)" />
+    <param name="goalYaw" value="$(arg goalYaw)" />
+    <param name="goalX" value="$(arg goalX)" />
+    <param name="goalY" value="$(arg goalY)" />
+    <param name="goalZ" value="$(arg goalZ)" />
+  </node>
+
+</launch>

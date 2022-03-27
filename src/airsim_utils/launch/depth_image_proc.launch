@@ -1,0 +1,18 @@
+<launch>
+  <node pkg="nodelet" type="nodelet" name="standalone_nodelet" args="manager"/>
+
+  <node pkg="airsim_utils" type="depth_image_filter" name="depth_image_filter" output="screen">
+    <param name="maxDepthValue" value="100.0"/>
+    <param name="minDepthValue" value="0.2"/>
+  </node>
+
+  <node pkg="nodelet" type="nodelet" name="depth_image_proc" args="load depth_image_proc/point_cloud_xyz_radial standalone_nodelet" output="screen">
+    <remap from="image_raw" to="/airsim_node/drone0/cam/DepthPerspective"/>
+    <remap from="/airsim_node/drone0/cam/camera_info" to="/airsim_node/drone0/cam/DepthPerspective/camera_info"/>
+    <param name="queue_size" type="int" value="1"/>
+    <remap from="/points" to="/airsim_node/drone0/cam/DepthCloud"/>
+  </node>
+
+  <node pkg="tf" type="static_transform_publisher" name="world_enu_to_map_pub" args="0 0 0 1.57 0 0 world_enu map 100"/>
+
+</launch>

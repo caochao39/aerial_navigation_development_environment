@@ -1,0 +1,170 @@
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="example">
+
+  <xacro:macro name="gazebo_material" params="ref color">
+    <gazebo reference="${ref}">
+      <material>Gazebo/${color}</material>
+    </gazebo>
+  </xacro:macro>
+
+  <link name="base_origin">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </visual>
+  </link>
+
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.06 0.06 0.05"/>
+      </geometry>
+    </visual>
+
+    <inertial>
+      <mass value="1e-5" />
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+    </inertial>
+  </link>
+
+  <joint name="base_link_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="base_origin"/>
+    <child link="base_link"/>
+  </joint>
+
+  <link name="left_arm_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.01" length="0.2"/>
+      </geometry>
+    </visual>
+
+    <inertial>
+      <mass value="1e-5" />
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+    </inertial>
+  </link>
+
+  <joint name="left_arm_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="1.57 0 0.785"/>
+    <parent link="base_link"/>
+    <child link="left_arm_link"/>
+  </joint>
+
+  <link name="right_arm_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.01" length="0.2"/>
+      </geometry>
+    </visual>
+
+    <inertial>
+      <mass value="1e-5" />
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+    </inertial>
+  </link>
+
+  <joint name="right_arm_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="1.57 0 -0.785"/>
+    <parent link="base_link"/>
+    <child link="right_arm_link"/>
+  </joint>
+
+  <link name="left_front_rotor">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.06" length="0.03"/>
+      </geometry>
+    </visual>
+
+    <inertial>
+      <mass value="1e-5" />
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+    </inertial>
+  </link>
+
+  <joint name="left_front_joint" type="fixed">
+    <origin xyz="0.09 -0.09 0" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="left_front_rotor"/>
+  </joint>
+
+  <link name="right_front_rotor">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.06" length="0.03"/>
+      </geometry>
+    </visual>
+
+    <inertial>
+      <mass value="1e-5" />
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+    </inertial>
+  </link>
+
+  <joint name="rigth_front_joint" type="fixed">
+    <origin xyz="0.09 0.09 0" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="right_front_rotor"/>
+  </joint>
+
+  <link name="left_rear_rotor">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.06" length="0.03"/>
+      </geometry>
+    </visual>
+
+    <inertial>
+      <mass value="1e-5" />
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+    </inertial>
+  </link>
+
+  <joint name="left_rear_joint" type="fixed">
+    <origin xyz="-0.09 -0.09 0" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="left_rear_rotor"/>
+  </joint>
+
+  <link name="right_rear_rotor">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.06" length="0.03"/>
+      </geometry>
+    </visual>
+
+    <inertial>
+      <mass value="1e-5" />
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+    </inertial>
+  </link>
+
+  <joint name="right_rear_joint" type="fixed">
+    <origin xyz="-0.09 0.09 0" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="right_rear_rotor"/>
+  </joint>
+
+  <xacro:gazebo_material ref="base_link"         color="Blue" />
+  <xacro:gazebo_material ref="left_arm_link"     color="Blue" />
+  <xacro:gazebo_material ref="right_arm_link"     color="Blue" />
+  <xacro:gazebo_material ref="left_front_rotor"  color="White" />
+  <xacro:gazebo_material ref="left_rear_rotor"   color="White" />
+  <xacro:gazebo_material ref="right_front_rotor" color="White" />
+  <xacro:gazebo_material ref="right_rear_rotor"  color="White" />
+
+</robot>

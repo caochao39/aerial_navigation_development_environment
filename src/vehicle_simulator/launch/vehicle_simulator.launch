@@ -1,0 +1,49 @@
+<launch>
+  <arg name="sensorPitch" default="0"/>
+  <arg name="vehicleX" default="0"/>
+  <arg name="vehicleY" default="0"/>
+  <arg name="vehicleZ" default="1.0"/>
+  <arg name="vehicleYaw" default="0"/>
+  <arg name="paused" default="false"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="realtime_factor" default="1.0"/>
+  <arg name="gui" default="false"/>
+  <arg name="headless" default="false"/>
+  <arg name="debug" default="false"/>
+  <arg name="verbose" default="false"/>
+  <arg name="world_name" default="office"/>
+  <arg name="use_gazebo" default="true"/>
+
+  <group if="$(arg use_gazebo)">
+    <include file="$(find gazebo_ros)/launch/empty_world.launch" >
+      <arg name="paused" value="$(arg paused)"/>
+      <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+      <arg name="gui" value="$(arg gui)"/>
+      <arg name="headless" value="$(arg headless)"/>
+      <arg name="debug" value="$(arg debug)"/>
+      <arg name="verbose" value="$(arg verbose)"/>
+      <arg name="world_name" value="$(find vehicle_simulator)/world/$(arg world_name).world"/>
+    </include>
+
+    <param name="rgbd_camera_description" command="$(find xacro)/xacro --inorder '$(find vehicle_simulator)/urdf/rgbd_camera.urdf.xacro'" />
+    <node pkg="gazebo_ros" type="spawn_model" name="spawn_rgbd_camera" args="-urdf -param /rgbd_camera_description -model rgbd_camera"/>
+    
+    <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find vehicle_simulator)/urdf/robot.urdf.xacro'" />
+    <node pkg="gazebo_ros" type="spawn_model" name="spawn_robot" args="-urdf -param /robot_description -model robot"/>
+  </group>
+
+  <node pkg="vehicle_simulator" type="vehicleSimulator" name="vehicleSimulator" output="screen">
+    <param name="realtimeFactor" value="$(arg realtime_factor)" />
+    <param name="windCoeff" type="double" value="0.05" />
+    <param name="maxRollPitchRate" type="double" value="20.0" />
+    <param name="rollPitchSmoothRate" type="double" value="0.1" />
+    <param name="sensorPitch" value="$(arg sensorPitch)" />
+    <param name="vehicleX" value="$(arg vehicleX)" />
+    <param name="vehicleY" value="$(arg vehicleY)" />
+    <param name="vehicleZ" value="$(arg vehicleZ)" />
+    <param name="vehicleYaw" value="$(arg vehicleYaw)" />
+  </node>
+
+  <!--node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz2" args="-d $(find vehicle_simulator)/rviz/vehicle_simulator.rviz"/-->
+
+</launch>

@@ -1,0 +1,57 @@
+<launch>
+
+  <arg name="stateEstimationTopic" default="/state_estimation"/>
+  <arg name="depthCloudTopic" default="/rgbd_camera/depth/points"/>
+  <arg name="depthCloudDelay" default="0"/>
+  <arg name="depthCamPitchOffset" default="0"/>
+  <arg name="depthCamXOffset" default="0"/>
+  <arg name="depthCamYOffset" default="0"/>
+  <arg name="depthCamZOffset" default="0"/>
+  <arg name="trackingCamBackward" default="false"/>
+  <arg name="trackingCamXOffset" default="0"/>
+  <arg name="trackingCamYOffset" default="0"/>
+  <arg name="trackingCamZOffset" default="0"/>
+  <arg name="trackingCamScale" default="1.0"/>
+  <arg name="vehicleX" default="0"/>
+  <arg name="vehicleY" default="0"/>
+  <arg name="vehicleZ" default="1.0"/>
+  <arg name="vehicleYaw" default="0"/>
+  <arg name="use_gazebo" default="true"/>
+  <arg name="gazebo_gui" default="true"/>
+  <arg name="world_name" default="office"/>
+  <arg name="realtime_factor" default="1.0"/>
+
+  <include file="$(find ps3joy)/launch/ps3.launch" />
+
+  <include file="$(find local_planner)/launch/local_planner_indoor.launch" >
+    <arg name="stateEstimationTopic" value="$(arg stateEstimationTopic)" />
+    <arg name="depthCloudTopic" value="$(arg depthCloudTopic)" />
+    <arg name="depthCloudDelay" value="$(arg depthCloudDelay)" />
+    <arg name="depthCamPitchOffset" value="$(arg depthCamPitchOffset)" />
+    <arg name="depthCamXOffset" value="$(arg depthCamXOffset)" />
+    <arg name="depthCamYOffset" value="$(arg depthCamYOffset)" />
+    <arg name="depthCamZOffset" value="$(arg depthCamZOffset)" />
+    <arg name="trackingCamBackward" value="$(arg trackingCamBackward)" />
+    <arg name="trackingCamXOffset" value="$(arg trackingCamXOffset)" />
+    <arg name="trackingCamYOffset" value="$(arg trackingCamYOffset)" />
+    <arg name="trackingCamZOffset" value="$(arg trackingCamZOffset)" />
+    <arg name="trackingCamScale" value="$(arg trackingCamScale)" />
+  </include>
+
+  <include file="$(find vehicle_simulator)/launch/vehicle_simulator.launch" >
+    <arg name="sensorPitch" value="$(arg depthCamPitchOffset)" />
+    <arg name="vehicleX" value="$(arg vehicleX)" />
+    <arg name="vehicleY" value="$(arg vehicleY)" />
+    <arg name="vehicleZ" value="$(arg vehicleZ)" />
+    <arg name="vehicleYaw" value="$(arg vehicleYaw)" />
+    <arg name="use_gazebo" value="$(arg use_gazebo)" />
+    <arg name="gui" value="$(arg gazebo_gui)" />
+    <arg name="world_name" value="$(arg world_name)" />
+    <arg name="realtime_factor" value="$(arg realtime_factor)" />
+  </include>
+
+  <node launch-prefix="nice" pkg="rviz" type="rviz" name="rvizAA" args="-d $(find vehicle_simulator)/rviz/vehicle_simulator_gazebo.rviz" respawn="true"/>
+
+  <node pkg="tf" type="static_transform_publisher" name="vehicleTransPublisher" args="0 0 0 -1.5707963 0 -1.5707963 /vehicle /rgbd_camera 1000"/>
+
+</launch>
