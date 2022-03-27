@@ -14,12 +14,10 @@ src/local_planner/paths/*.txt
 
 src/local_planner/paths/*.ply
 
-src/vehicle_simulator/mesh
+src/vehicle_simulator/mesh/*
 
 !download_environments.sh
 
 !download_additional_environments.sh
-
-!*/
 
 *pyc
