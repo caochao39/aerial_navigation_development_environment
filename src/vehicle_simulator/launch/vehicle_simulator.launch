@@ -44,6 +44,4 @@
     <param name="vehicleYaw" value="$(arg vehicleYaw)" />
   </node>
 
-  <!--node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz2" args="-d $(find vehicle_simulator)/rviz/vehicle_simulator.rviz"/-->
-
 </launch>
