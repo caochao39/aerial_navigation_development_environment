@@ -173,3 +173,7 @@ J. Zhang, C. Hu, R. Gupta Chadha, and S. Singh. Falco: Fast Likelihood-based Col
 ## Credits
 
 Gazebo environment modes are from [3DGEMS](https://data.nvision2.eecs.yorku.ca/3DGEMS/). [joystick_drivers](http://wiki.ros.org/joystick_drivers) package is from open-source release.
+
+## Links
+
+[airOMPL Planner](https://github.com/MichaelFYang/airOMPL_planner): an OMPL-based route planner for aerial navigation, running on top of Aerial Navigation Development Environment.
