@@ -19,6 +19,7 @@
   <arg name="use_gazebo" default="false"/>
   <arg name="gazebo_gui" default="true"/>
   <arg name="world_name" default="office"/>
+  <arg name="config" default="outdoor"/>
   <arg name="realtime_factor" default="1.0"/>
 
   <include file="$(find ps3joy)/launch/ps3.launch" />
@@ -27,7 +28,7 @@
 
   <node pkg="airsim_utils" name="airsim_bridge" type="airsim_bridge.py" output="screen" />
 
-  <include file="$(find local_planner)/launch/local_planner_outdoor.launch" >
+  <include file="$(find local_planner)/launch/local_planner_$(arg config).launch" >
     <arg name="stateEstimationTopic" value="$(arg stateEstimationTopic)" />
     <arg name="depthCloudTopic" value="$(arg depthCloudTopic)" />
     <arg name="depthCloudDelay" value="$(arg depthCloudDelay)" />
