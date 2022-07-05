@@ -124,6 +124,25 @@ Now users can use the controller to try *smart joystick flight* and *manual flig
 
 Note that users can turn off the AirSim main window to reduce graphics rendering load and increase data render framerate, by changing 'FlyWithMe' to 'NoDisplay' in the 'AirSimNH/LinuxNoEditor/settings.json' file.
 
+## Integrating CMU-Recon models - releasing soon (Ubuntu 20.04 only)
+
+The system can seamlessly integrate reality models built by the CMU-Recon Team. CMU-Recon models are made of high-fidelity lidar scans and RGB images. To try an example CMU-Recon model, go to the development environment folder in a terminal, switch to the 'noetic-cmu-recon' branch, and then compile.
+```
+git checkout noetic-cmu-recon
+catkin_make
+```
+Run a script to download CMU-Recon models. When prompted, enter 'A' to overwrite all existing files.
+
+```./src/vehicle_simulator/cmu_recon/download_cmu_recon_models.sh```
+
+Now users can use the command lines below to launch the system. Wait for the system to initialize in a few seconds, rendered RGB, depth, and semantic images will show in RVIZ.
+```
+source devel/setup.sh
+roslaunch vehicle_simulator system_cmu_recon_seg.launch
+```
+
+<p align="center"><img src="img/cmu_recon_models.jpg" alt="CMU-Recon Models" width="70%"/></p>
+
 ## Advanced
 
 **Changing simulation environment**: Additional five Gazebo environments are provided. In a terminal, go to the development environment folder and use the command line below to download the environments.
