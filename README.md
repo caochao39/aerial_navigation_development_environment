@@ -135,7 +135,7 @@ Run a script to download CMU-Recon models. When prompted, enter 'A' to overwrite
 
 ```./src/vehicle_simulator/cmu_recon/download_cmu_recon_models.sh```
 
-Now users can use the command lines below to launch the system. Wait for the system to initialize in a few seconds, rendered RGB, depth, and semantic images will show in RVIZ.
+Now users can use the command lines below to launch the system. Wait for the system to initialize in a few seconds, rendered RGB, depth, and semantic images will show in RVIZ. To view the rendered RGB or semantic point cloud, click 'Panels->Displays' and check 'ColorCloud' or 'SemanticCloud'.
 ```
 source devel/setup.sh
 roslaunch vehicle_simulator system_cmu_recon_seg.launch
