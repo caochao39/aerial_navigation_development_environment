@@ -126,7 +126,7 @@ Note that users can turn off the AirSim main window to reduce graphics rendering
 
 ## Integrating CMU-Recon models - releasing soon (Ubuntu 20.04 only)
 
-The system can seamlessly integrate reality models built by the CMU-Recon Team. CMU-Recon models are made of high-fidelity lidar scans and RGB images. To try an example CMU-Recon model, go to the development environment folder in a terminal, switch to the 'noetic-cmu-recon' branch, and then compile.
+The system can seamlessly integrate reality models built by the [CMU-Recon System](https://www.cmu-reconstruction.com). CMU-Recon models are made of high-fidelity lidar scans and RGB images. To try an example CMU-Recon model, go to the development environment folder in a terminal, switch to the 'noetic-cmu-recon' branch, and then compile.
 ```
 git checkout noetic-cmu-recon
 catkin_make
