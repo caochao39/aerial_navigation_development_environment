@@ -131,9 +131,9 @@ The system can seamlessly integrate realistic models built by the [CMU-Recon Sys
 git checkout noetic-cmu-recon
 catkin_make
 ```
-Run a script to download CMU-Recon models. When prompted, enter 'A' to overwrite all existing files.
+Run a script to download the CMU-Recon model. When prompted, enter 'A' to overwrite all existing files.
 
-```./src/vehicle_simulator/cmu_recon/download_cmu_recon_models.sh```
+```./src/vehicle_simulator/cmu_recon/download_cmu_recon_model.sh```
 
 Now users can use the command lines below to launch the system. Wait for the system to initialize in a few seconds, rendered RGB, depth, and semantic images will show in RVIZ. To view the rendered RGB or semantic point cloud, click 'Panels->Displays' and check 'ColorCloud' or 'SemanticCloud'.
 ```
@@ -141,7 +141,7 @@ source devel/setup.sh
 roslaunch vehicle_simulator system_cmu_recon_seg.launch
 ```
 
-<p align="center"><img src="img/cmu_recon_models.jpg" alt="CMU-Recon Models" width="70%"/></p>
+<p align="center"><img src="img/cmu_recon_model.jpg" alt="CMU-Recon Model" width="70%"/></p>
 
 ## Advanced
 
