@@ -2,11 +2,8 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-// #include <ros/ros.h>
 #include "rclcpp/rclcpp.hpp"
 
-// #include <std_msgs/Float32.h>
-// #include <sensor_msgs/image_encodings.h>
 #include <std_msgs/msg/float32.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 
@@ -19,12 +16,10 @@ image_transport::Publisher pub_depth_;
 float maxDepthValue = 100.0;
 float minDepthValue = 0.2;
 
-// void depthImageHandler(const sensor_msgs::Image::ConstPtr& depthImageIn)
 void depthImageHandler(const sensor_msgs::msg::Image::ConstSharedPtr depthImageIn)
 {
   if (depthImageIn->encoding == enc::TYPE_32FC1)
   {
-    // sensor_msgs::ImagePtr depth_msg( new sensor_msgs::Image );
     sensor_msgs::msg::Image::SharedPtr depth_msg( new sensor_msgs::msg::Image);
     depth_msg->header   = depthImageIn->header;
     depth_msg->height   = depthImageIn->height;
@@ -48,28 +43,20 @@ void depthImageHandler(const sensor_msgs::msg::Image::ConstSharedPtr depthImageI
 
 int main(int argc, char** argv)
 {
-  // ros::init(argc, argv, "depth_image_filter");
-  // ros::NodeHandle nh;
-  // ros::NodeHandle nhPrivate = ros::NodeHandle("~");
-
   rclcpp::init(argc, argv);
   auto nh = rclcpp::Node::make_shared("depth_image_filter");
 
-  // nhPrivate.getParam("maxDepthValue", maxDepthValue);
-  // nhPrivate.getParam("minDepthValue", minDepthValue);
   nh->declare_parameter<double>("maxDepthValue", maxDepthValue);
   nh->declare_parameter<double>("minDepthValue", minDepthValue);
 
   nh->get_parameter("maxDepthValue", maxDepthValue);
   nh->get_parameter("minDepthValue", minDepthValue);
   
-  // ros::Subscriber subDepthImage = nh.subscribe<sensor_msgs::Image> ("/airsim_node/drone0/cam/DepthPerspective", 1, depthImageHandler);
   auto subDepthImage = nh->create_subscription<sensor_msgs::msg::Image>("/airsim_node/drone0/cam/DepthPerspective", 1, depthImageHandler);
   
   image_transport::ImageTransport it(nh);
   pub_depth_ = it.advertise("/airsim_node/drone0/cam/DepthPerspective/converted", 1);
 
-  // ros::spin();
   rclcpp::spin(nh);
 
   return 0;
