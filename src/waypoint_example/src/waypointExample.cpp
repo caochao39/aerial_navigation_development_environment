@@ -2,25 +2,42 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <ros/ros.h>
+// #include <ros/ros.h>
 
-#include <message_filters/subscriber.h>
-#include <message_filters/synchronizer.h>
-#include <message_filters/sync_policies/approximate_time.h>
+#include "rclcpp/rclcpp.hpp"
 
-#include <std_msgs/Float32.h>
-#include <nav_msgs/Odometry.h>
-#include <geometry_msgs/PointStamped.h>
-#include <sensor_msgs/PointCloud2.h>
+// #include <message_filters/subscriber.h>
+// #include <message_filters/synchronizer.h>
+// #include <message_filters/sync_policies/approximate_time.h>
 
-#include <tf/transform_datatypes.h>
-#include <tf/transform_broadcaster.h>
+// #include <std_msgs/Float32.h>
+// #include <nav_msgs/Odometry.h>
+// #include <geometry_msgs/PointStamped.h>
+// #include <sensor_msgs/PointCloud2.h>
 
+#include "std_msgs/msg/float32.hpp"
+#include "nav_msgs/msg/odometry.hpp"
+#include "geometry_msgs/msg/point_stamped.hpp"
+#include "geometry_msgs/msg/polygon_stamped.hpp"
+#include "sensor_msgs/msg/point_cloud2.hpp"
+
+// #include <tf/transform_datatypes.h>
+// #include <tf/transform_broadcaster.h>
+#include "tf2/transform_datatypes.h"
+#include "tf2_ros/transform_broadcaster.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
+
+// #include <pcl_conversions/pcl_conversions.h>
+// #include <pcl/point_cloud.h>
+// #include <pcl/point_types.h>
+// #include <pcl/filters/voxel_grid.h>
+// #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/kdtree/kdtree_flann.h>
+
 
 using namespace std;
 
@@ -92,9 +109,11 @@ void readWaypointFile()
 }
 
 // vehicle pose callback function
-void poseHandler(const nav_msgs::Odometry::ConstPtr& pose)
+// void poseHandler(const nav_msgs::Odometry::ConstPtr& pose)
+void poseHandler(const nav_msgs::msg::Odometry::ConstSharedPtr pose)
 {
-  curTime = pose->header.stamp.toSec();
+  // curTime = pose->header.stamp.toSec();
+  curTime = rclcpp::Time(pose->header.stamp).seconds(); 
 
   vehicleX = pose->pose.pose.position.x;
   vehicleY = pose->pose.pose.position.y;
@@ -103,26 +122,45 @@ void poseHandler(const nav_msgs::Odometry::ConstPtr& pose)
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "waypointExample");
-  ros::NodeHandle nh;
-  ros::NodeHandle nhPrivate = ros::NodeHandle("~");
+  // ros::init(argc, argv, "waypointExample");
+  // ros::NodeHandle nh;
+  // ros::NodeHandle nhPrivate = ros::NodeHandle("~");
+  rclcpp::init(argc, argv);
+  auto nh = rclcpp::Node::make_shared("waypointExample");
 
-  nhPrivate.getParam("waypoint_file_dir", waypoint_file_dir);
-  nhPrivate.getParam("waypointXYRadius", waypointXYRadius);
-  nhPrivate.getParam("waypointZBound", waypointZBound);
-  nhPrivate.getParam("waitTime", waitTime);
-  nhPrivate.getParam("frameRate", frameRate);
-  nhPrivate.getParam("speed", speed);
-  nhPrivate.getParam("sendSpeed", sendSpeed);
+  // nhPrivate.getParam("waypoint_file_dir", waypoint_file_dir);
+  // nhPrivate.getParam("waypointXYRadius", waypointXYRadius);
+  // nhPrivate.getParam("waypointZBound", waypointZBound);
+  // nhPrivate.getParam("waitTime", waitTime);
+  // nhPrivate.getParam("frameRate", frameRate);
+  // nhPrivate.getParam("speed", speed);
+  // nhPrivate.getParam("sendSpeed", sendSpeed);
 
-  ros::Subscriber subPose = nh.subscribe<nav_msgs::Odometry> ("/state_estimation", 5, poseHandler);
+  nh->declare_parameter<std::string>("waypoint_file_dir", waypoint_file_dir);
+  nh->declare_parameter<double>("waypointXYRadius", waypointXYRadius);
+  nh->declare_parameter<double>("waypointZBound", waypointZBound);
+  nh->declare_parameter<double>("waitTime", waitTime);
+  nh->declare_parameter<double>("frameRate", frameRate);
+  nh->declare_parameter<double>("speed", speed);
+  nh->declare_parameter<bool>("sendSpeed", sendSpeed);
 
-  ros::Publisher pubWaypoint = nh.advertise<geometry_msgs::PointStamped> ("/way_point", 5);
-  geometry_msgs::PointStamped waypointMsgs;
+  // ros::Subscriber subPose = nh.subscribe<nav_msgs::Odometry> ("/state_estimation", 5, poseHandler);
+
+  // ros::Publisher pubWaypoint = nh.advertise<geometry_msgs::PointStamped> ("/way_point", 5);
+
+  auto subPose = nh->create_subscription<nav_msgs::msg::Odometry>("/state_estimation", 5, poseHandler);
+  auto pubWaypoint = nh->create_publisher<geometry_msgs::msg::PointStamped>("/way_point", 5);
+
+  // geometry_msgs::PointStamped waypointMsgs;
+  // waypointMsgs.header.frame_id = "map";
+  // ros::Publisher pubSpeed = nh.advertise<std_msgs::Float32> ("/speed", 5);
+  
+  geometry_msgs::msg::PointStamped waypointMsgs;
   waypointMsgs.header.frame_id = "map";
+  auto pubSpeed = nh->create_publisher<std_msgs::msg::Float32>("/speed", 5);
 
-  ros::Publisher pubSpeed = nh.advertise<std_msgs::Float32> ("/speed", 5);
-  std_msgs::Float32 speedMsgs;
+  // std_msgs::Float32 speedMsgs;
+  std_msgs::msg::Float32 speedMsgs;
 
   // read waypoints from file
   readWaypointFile();
@@ -135,10 +173,13 @@ int main(int argc, char** argv)
     exit(1);
   }
 
-  ros::Rate rate(100);
-  bool status = ros::ok();
+  // ros::Rate rate(100);
+  // bool status = ros::ok();
+  rclcpp::Rate rate(100);
+  bool status = rclcpp::ok();
   while (status) {
-    ros::spinOnce();
+    // ros::spinOnce();
+    rclcpp::spin_some(nh);
 
     float disX = vehicleX - waypoints->points[wayPointID].x;
     float disY = vehicleY - waypoints->points[wayPointID].y;
@@ -159,22 +200,26 @@ int main(int argc, char** argv)
     // publish waypoint and speed messages at certain frame rate
     if (curTime - waypointTime > 1.0 / frameRate) {
       if (!isWaiting) {
-        waypointMsgs.header.stamp = ros::Time().fromSec(curTime);
+        // waypointMsgs.header.stamp = ros::Time().fromSec(curTime);
+        waypointMsgs.header.stamp = rclcpp::Time(static_cast<uint64_t>(curTime * 1e9));
         waypointMsgs.point.x = waypoints->points[wayPointID].x;
         waypointMsgs.point.y = waypoints->points[wayPointID].y;
         waypointMsgs.point.z = waypoints->points[wayPointID].z;
-        pubWaypoint.publish(waypointMsgs);
+        // pubWaypoint.publish(waypointMsgs);
+        pubWaypoint->publish(waypointMsgs);
       }
 
       if (sendSpeed) {
         speedMsgs.data = speed;
-        pubSpeed.publish(speedMsgs);
+        // pubSpeed.publish(speedMsgs);
+        pubSpeed->publish(speedMsgs);
       }
 
       waypointTime = curTime;
     }
 
-    status = ros::ok();
+    // status = ros::ok();
+    status = rclcpp::ok();
     rate.sleep();
   }
 
