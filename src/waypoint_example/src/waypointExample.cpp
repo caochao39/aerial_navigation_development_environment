@@ -144,6 +144,14 @@ int main(int argc, char** argv)
   nh->declare_parameter<double>("speed", speed);
   nh->declare_parameter<bool>("sendSpeed", sendSpeed);
 
+  nh->get_parameter("waypoint_file_dir", waypoint_file_dir);
+  nh->get_parameter("waypointXYRadius", waypointXYRadius);
+  nh->get_parameter("waypointZBound", waypointZBound);
+  nh->get_parameter("waitTime", waitTime);
+  nh->get_parameter("frameRate", frameRate);
+  nh->get_parameter("speed", speed);
+  nh->get_parameter("sendSpeed", sendSpeed);
+
   // ros::Subscriber subPose = nh.subscribe<nav_msgs::Odometry> ("/state_estimation", 5, poseHandler);
 
   // ros::Publisher pubWaypoint = nh.advertise<geometry_msgs::PointStamped> ("/way_point", 5);
