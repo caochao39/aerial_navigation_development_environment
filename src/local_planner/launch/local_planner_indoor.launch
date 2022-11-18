@@ -1,122 +1,122 @@
 <launch>
 
   <arg name="stateEstimationTopic" default="/state_estimation"/>
-  <arg name="depthCloudTopic" default="/rgbd_camera/depth/points"/>
+  <arg name="depthCloudTopic" default="/rgbd_camera/points"/>
   <arg name="autonomyMode" default="false"/>
-  <arg name="depthCloudDelay" default="0"/>
-  <arg name="depthCamPitchOffset" default="0"/>
-  <arg name="depthCamXOffset" default="0"/>
-  <arg name="depthCamYOffset" default="0"/>
-  <arg name="depthCamZOffset" default="0"/>
+  <arg name="depthCloudDelay" default="0.0"/>
+  <arg name="depthCamPitchOffset" default="0.0"/>
+  <arg name="depthCamXOffset" default="0.0"/>
+  <arg name="depthCamYOffset" default="0.0"/>
+  <arg name="depthCamZOffset" default="0.0"/>
   <arg name="trackingCamBackward" default="false"/>
-  <arg name="trackingCamXOffset" default="0"/>
-  <arg name="trackingCamYOffset" default="0"/>
-  <arg name="trackingCamZOffset" default="0"/>
+  <arg name="trackingCamXOffset" default="0.0"/>
+  <arg name="trackingCamYOffset" default="0.0"/>
+  <arg name="trackingCamZOffset" default="0.0"/>
   <arg name="trackingCamScale" default="1.0"/>
   <arg name="stopDis" default="0.5"/>
   <arg name="shiftGoalAtStart" default="false"/>
-  <arg name="goalX" default="0"/>
-  <arg name="goalY" default="0"/>
+  <arg name="goalX" default="0.0"/>
+  <arg name="goalY" default="0.0"/>
   <arg name="goalZ" default="1.0"/>
 
-  <node pkg="local_planner" type="localPlanner" name="localPlanner" required="true" output="screen">
-    <param name="pathFolder" type="string" value="$(find local_planner)/paths" />
-    <param name="stateEstimationTopic" value="$(arg stateEstimationTopic)" />
-    <param name="autonomyMode" value="$(arg autonomyMode)" />
-    <param name="depthCloudTopic" value="$(arg depthCloudTopic)" />
-    <param name="depthCloudDelay" value="$(arg depthCloudDelay)" />
-    <param name="depthCamPitchOffset" value="$(arg depthCamPitchOffset)" />
-    <param name="depthCamXOffset" value="$(arg depthCamXOffset)" />
-    <param name="depthCamYOffset" value="$(arg depthCamYOffset)" />
-    <param name="depthCamZOffset" value="$(arg depthCamZOffset)" />
-    <param name="trackingCamBackward" value="$(arg trackingCamBackward)" />
-    <param name="trackingCamXOffset" value="$(arg trackingCamXOffset)" />
-    <param name="trackingCamYOffset" value="$(arg trackingCamYOffset)" />
-    <param name="trackingCamZOffset" value="$(arg trackingCamZOffset)" />
-    <param name="trackingCamScale" value="$(arg trackingCamScale)" />
-    <param name="scanVoxelSize" type="double" value="0.1" />
-    <param name="pointPerPathThre" type="int" value="2" />
-    <param name="maxRange" type="double" value="4.0" />
-    <param name="maxElev" type="double" value="5.0" />
-    <param name="keepSurrCloud" type="bool" value="true" />
-    <param name="keepHoriDis" type="double" value="1.0" />
-    <param name="keepVertDis" type="double" value="0.5" />
-    <param name="lowerBoundZ" type="double" value="-1.2" />
-    <param name="upperBoundZ" type="double" value="1.2" />
-    <param name="pitchDiffLimit" type="double" value="35.0" />
-    <param name="pitchWeight" type="double" value="0.03" />
-    <param name="sensorMaxPitch" type="double" value="25.0" />
-    <param name="sensorMaxYaw" type="double" value="40.0" />
-    <param name="yawDiffLimit" type="double" value="60.0" />
-    <param name="yawWeight" type="double" value="0.015" />
-    <param name="pathScale" type="double" value="0.5" />
-    <param name="minPathScale" type="double" value="0.25" />
-    <param name="pathScaleStep" type="double" value="0.125" />
-    <param name="pathScaleBySpeed" type="bool" value="true" />
-    <param name="stopDis" value="$(arg stopDis)" />
-    <param name="shiftGoalAtStart" value="$(arg shiftGoalAtStart)" />
-    <param name="goalX" value="$(arg goalX)" />
-    <param name="goalY" value="$(arg goalY)" />
-    <param name="goalZ" value="$(arg goalZ)" />
+  <node pkg="local_planner" exec="localPlanner" name="localPlanner" output="screen">
+    <param name="pathFolder" value="$(find-pkg-prefix local_planner)/paths" />
+    <param name="stateEstimationTopic" value="$(var stateEstimationTopic)" />
+    <param name="autonomyMode" value="$(var autonomyMode)" />
+    <param name="depthCloudTopic" value="$(var depthCloudTopic)" />
+    <param name="depthCloudDelay" value="$(var depthCloudDelay)" />
+    <param name="depthCamPitchOffset" value="$(var depthCamPitchOffset)" />
+    <param name="depthCamXOffset" value="$(var depthCamXOffset)" />
+    <param name="depthCamYOffset" value="$(var depthCamYOffset)" />
+    <param name="depthCamZOffset" value="$(var depthCamZOffset)" />
+    <param name="trackingCamBackward" value="$(var trackingCamBackward)" />
+    <param name="trackingCamXOffset" value="$(var trackingCamXOffset)" />
+    <param name="trackingCamYOffset" value="$(var trackingCamYOffset)" />
+    <param name="trackingCamZOffset" value="$(var trackingCamZOffset)" />
+    <param name="trackingCamScale" value="$(var trackingCamScale)" />
+    <param name="scanVoxelSize" value="0.1" />
+    <param name="pointPerPathThre" value="2" />
+    <param name="maxRange" value="4.0" />
+    <param name="maxElev" value="5.0" />
+    <param name="keepSurrCloud" value="true" />
+    <param name="keepHoriDis" value="1.0" />
+    <param name="keepVertDis" value="0.5" />
+    <param name="lowerBoundZ" value="-1.2" />
+    <param name="upperBoundZ" value="1.2" />
+    <param name="pitchDiffLimit" value="35.0" />
+    <param name="pitchWeight" value="0.03" />
+    <param name="sensorMaxPitch" value="25.0" />
+    <param name="sensorMaxYaw" value="40.0" />
+    <param name="yawDiffLimit" value="60.0" />
+    <param name="yawWeight" value="0.015" />
+    <param name="pathScale" value="0.5" />
+    <param name="minPathScale" value="0.25" />
+    <param name="pathScaleStep" value="0.125" />
+    <param name="pathScaleBySpeed" value="true" />
+    <param name="stopDis" value="$(var stopDis)" />
+    <param name="shiftGoalAtStart" value="$(var shiftGoalAtStart)" />
+    <param name="goalX" value="$(var goalX)" />
+    <param name="goalY" value="$(var goalY)" />
+    <param name="goalZ" value="$(var goalZ)" />
   </node>
 
-  <node pkg="local_planner" type="pathFollower" name="pathFollower" required="true" output="screen">
-    <param name="stateEstimationTopic" value="$(arg stateEstimationTopic)" />
-    <param name="desiredTrajFile" type="string" value="$(env HOME)/Desktop/trajectory_desired.txt" />
-    <param name="executedTrajFile" type="string" value="$(env HOME)/Desktop/trajectory_executed.txt" />
-    <param name="saveTrajectory" type="bool" value="false" />
-    <param name="saveTrajInverval" type="double" value="0.1" />
-    <param name="waypointTest" type="bool" value="false" />
-    <param name="waypointNum" type="int" value="6" />
-    <param name="waypointInterval" type="double" value="1.0" />
-    <param name="waypointYaw" type="double" value="45.0" />
-    <param name="waypointZ" type="double" value="2.0" />
-    <param name="autonomyMode" value="$(arg autonomyMode)" />
-    <param name="pubSkipNum" type="int" value="1" />
-    <param name="trackingCamBackward" value="$(arg trackingCamBackward)" />
-    <param name="trackingCamXOffset" value="$(arg trackingCamXOffset)" />
-    <param name="trackingCamYOffset" value="$(arg trackingCamYOffset)" />
-    <param name="trackingCamZOffset" value="$(arg trackingCamZOffset)" />
-    <param name="trackingCamScale" value="$(arg trackingCamScale)" />
-    <param name="trackPitch" type="double" value="0" />
-    <param name="lookAheadScale" type="double" value="0.2" />
-    <param name="minLookAheadDis" type="double" value="0.2" />
-    <param name="minSpeed" type="double" value="0.5" />
-    <param name="maxSpeed" type="double" value="2.0" />
-    <param name="accXYGain" type="double" value="0.05" />
-    <param name="velXYGain" type="double" value="0.4" />
-    <param name="posXYGain" type="double" value="0.05" />
-    <param name="stopVelXYGain" type="double" value="0.2" />
-    <param name="stopPosXYGain" type="double" value="0.2" />
-    <param name="smoothIncrSpeed" type="double" value="0.75" />
-    <param name="maxRollPitch" type="double" value="30.0" />
-    <param name="yawRateScale" type="double" value="1.0" />
-    <param name="yawGain" type="double" value="2.0" />
-    <param name="yawBoostScale" type="double" value="2.0" />
-    <param name="maxRateByYaw" type="double" value="60.0" />
-    <param name="velZScale" type="double" value="1.0" />
-    <param name="posZGain" type="double" value="1.5" />
-    <param name="posZBoostScale" type="double" value="2.0" />
-    <param name="maxVelByPosZ" type="double" value="0.5" />
-    <param name="manualSpeedXY" type="double" value="2.0" />
-    <param name="manualSpeedZ" type="double" value="1.0" />
-    <param name="manualYawRate" type="double" value="60.0" />
-    <param name="slowTurnRate" type="double" value="0.75" />
-    <param name="minSlowTurnCurv" type="double" value="0.9" />
-    <param name="minSlowTurnInterval" type="double" value="1.0" />
-    <param name="minStopRotInterval" type="double" value="1.0" />
-    <param name="stopRotDelayTime" type="double" value="0" />
-    <param name="stopRotDis" type="double" value="1.0" />
-    <param name="stopRotYaw1" type="double" value="90.0" />
-    <param name="stopRotYaw2" type="double" value="10.0" />
-    <param name="stopDis" value="$(arg stopDis)" />
-    <param name="slowDis" type="double" value="2.0" />
-    <param name="joyDeadband" type="double" value="0.1" />
-    <param name="joyToSpeedDelay" type="double" value="2.0" />
-    <param name="shiftGoalAtStart" value="$(arg shiftGoalAtStart)" />
-    <param name="goalX" value="$(arg goalX)" />
-    <param name="goalY" value="$(arg goalY)" />
-    <param name="goalZ" value="$(arg goalZ)" />
+  <node pkg="local_planner" exec="pathFollower" name="pathFollower" output="screen">
+    <param name="stateEstimationTopic" value="$(var stateEstimationTopic)" />
+    <param name="desiredTrajFile" value="$(env HOME)/Desktop/trajectory_desired.txt" />
+    <param name="executedTrajFile" value="$(env HOME)/Desktop/trajectory_executed.txt" />
+    <param name="saveTrajectory" value="false" />
+    <param name="saveTrajInverval" value="0.1" />
+    <param name="waypointTest" value="false" />
+    <param name="waypointNum" value="6" />
+    <param name="waypointInterval" value="1.0" />
+    <param name="waypointYaw" value="45.0" />
+    <param name="waypointZ" value="2.0" />
+    <param name="autonomyMode" value="$(var autonomyMode)" />
+    <param name="pubSkipNum" value="1" />
+    <param name="trackingCamBackward" value="$(var trackingCamBackward)" />
+    <param name="trackingCamXOffset" value="$(var trackingCamXOffset)" />
+    <param name="trackingCamYOffset" value="$(var trackingCamYOffset)" />
+    <param name="trackingCamZOffset" value="$(var trackingCamZOffset)" />
+    <param name="trackingCamScale" value="$(var trackingCamScale)" />
+    <param name="trackPitch" value="0.0" />
+    <param name="lookAheadScale" value="0.2" />
+    <param name="minLookAheadDis" value="0.2" />
+    <param name="minSpeed" value="0.5" />
+    <param name="maxSpeed" value="2.0" />
+    <param name="accXYGain" value="0.05" />
+    <param name="velXYGain" value="0.4" />
+    <param name="posXYGain" value="0.05" />
+    <param name="stopVelXYGain" value="0.2" />
+    <param name="stopPosXYGain" value="0.2" />
+    <param name="smoothIncrSpeed" value="0.75" />
+    <param name="maxRollPitch" value="30.0" />
+    <param name="yawRateScale" value="1.0" />
+    <param name="yawGain" value="2.0" />
+    <param name="yawBoostScale" value="2.0" />
+    <param name="maxRateByYaw" value="60.0" />
+    <param name="velZScale" value="1.0" />
+    <param name="posZGain" value="1.5" />
+    <param name="posZBoostScale" value="2.0" />
+    <param name="maxVelByPosZ" value="0.5" />
+    <param name="manualSpeedXY" value="2.0" />
+    <param name="manualSpeedZ" value="1.0" />
+    <param name="manualYawRate" value="60.0" />
+    <param name="slowTurnRate" value="0.75" />
+    <param name="minSlowTurnCurv" value="0.9" />
+    <param name="minSlowTurnInterval" value="1.0" />
+    <param name="minStopRotInterval" value="1.0" />
+    <param name="stopRotDelayTime" value="0.0" />
+    <param name="stopRotDis" value="1.0" />
+    <param name="stopRotYaw1" value="90.0" />
+    <param name="stopRotYaw2" value="10.0" />
+    <param name="stopDis" value="$(var stopDis)" />
+    <param name="slowDis" value="2.0" />
+    <param name="joyDeadband" value="0.1" />
+    <param name="joyToSpeedDelay" value="2.0" />
+    <param name="shiftGoalAtStart" value="$(var shiftGoalAtStart)" />
+    <param name="goalX" value="$(var goalX)" />
+    <param name="goalY" value="$(var goalY)" />
+    <param name="goalZ" value="$(var goalZ)" />
   </node>
 
 </launch>

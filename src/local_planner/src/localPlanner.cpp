@@ -2,28 +2,46 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <ros/ros.h>
+// #include <ros/ros.h>
+#include "rclcpp/rclcpp.hpp"
+#include "rclcpp/time.hpp"
+#include "rclcpp/clock.hpp"
+#include "builtin_interfaces/msg/time.hpp"
 
-#include <message_filters/subscriber.h>
-#include <message_filters/synchronizer.h>
-#include <message_filters/sync_policies/approximate_time.h>
+// #include <message_filters/subscriber.h>
+// #include <message_filters/synchronizer.h>
+// #include <message_filters/sync_policies/approximate_time.h>
 
-#include <std_msgs/Empty.h>
-#include <std_msgs/Float32.h>
-#include <nav_msgs/Path.h>
-#include <nav_msgs/Odometry.h>
-#include <geometry_msgs/PointStamped.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <sensor_msgs/Joy.h>
+// #include <std_msgs/Empty.h>
+// #include <std_msgs/Float32.h>
+// #include <nav_msgs/Path.h>
+// #include <nav_msgs/Odometry.h>
+// #include <geometry_msgs/PointStamped.h>
+// #include <sensor_msgs/PointCloud2.h>
+// #include <sensor_msgs/Joy.h>
+#include <std_msgs/msg/float32.hpp>
+#include <std_msgs/msg/bool.hpp>
+#include <std_msgs/msg/empty.hpp>
+#include <nav_msgs/msg/path.hpp>
+#include <nav_msgs/msg/odometry.hpp>
+#include <geometry_msgs/msg/point_stamped.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
+#include <sensor_msgs/msg/joy.hpp>
 
-#include <tf/transform_datatypes.h>
-#include <tf/transform_broadcaster.h>
+// #include <tf/transform_datatypes.h>
+// #include <tf/transform_broadcaster.h>
+#include "tf2/transform_datatypes.h"
+#include "tf2_ros/transform_broadcaster.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/kdtree/kdtree_flann.h>
+
+#include "rmw/types.h"
+#include "rmw/qos_profiles.h"
 
 #define PLOTPATHSET 1 // set to 0 to save processing and 1 to plot path set
 
@@ -34,7 +52,7 @@ const double PI = 3.1415926;
 // general parameters
 string pathFolder;
 string stateEstimationTopic = "/state_estimation";
-string depthCloudTopic = "/rgbd_camera/depth/points";
+string depthCloudTopic = "/rgbd_camera/points";
 double depthCloudDelay = 0;
 double depthCamPitchOffset = 0;
 double depthCamXOffset = 0;
@@ -140,7 +158,10 @@ float trackYaw = 0;
 
 pcl::VoxelGrid<pcl::PointXYZ> downSizeFilter;
 
-void stateEstimationHandler(const nav_msgs::Odometry::ConstPtr& odom)
+// rclcpp::Node::SharedPtr nh;
+
+// void stateEstimationHandler(const nav_msgs::Odometry::ConstPtr& odom)
+void stateEstimationHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom)
 {
   if (stateInitDelay >= 0 && shiftGoalAtStart) {
     if (stateInitDelay == 0) {
@@ -152,9 +173,12 @@ void stateEstimationHandler(const nav_msgs::Odometry::ConstPtr& odom)
     return;
   }
 
+  // double roll, pitch, yaw;
+  // geometry_msgs::Quaternion geoQuat = odom->pose.pose.orientation;
+  // tf::Matrix3x3(tf::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w)).getRPY(roll, pitch, yaw);
   double roll, pitch, yaw;
-  geometry_msgs::Quaternion geoQuat = odom->pose.pose.orientation;
-  tf::Matrix3x3(tf::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w)).getRPY(roll, pitch, yaw);
+  geometry_msgs::msg::Quaternion geoQuat = odom->pose.pose.orientation;
+  tf2::Matrix3x3(tf2::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w)).getRPY(roll, pitch, yaw);
 
   float vehicleX = trackingCamScale * odom->pose.pose.position.x;
   float vehicleY = trackingCamScale * odom->pose.pose.position.y;
@@ -181,7 +205,8 @@ void stateEstimationHandler(const nav_msgs::Odometry::ConstPtr& odom)
 
   odomPointerLast = (odomPointerLast + 1) % odomQueLength;
 
-  odomTime[odomPointerLast] = odom->header.stamp.toSec();
+  // odomTime[odomPointerLast] = odom->header.stamp.toSec();
+  odomTime[odomPointerLast] = rclcpp::Time(odom->header.stamp).seconds();
   odomRoll[odomPointerLast] = roll;
   odomPitch[odomPointerLast] = pitch;
   odomYaw[odomPointerLast] = yaw;
@@ -190,7 +215,8 @@ void stateEstimationHandler(const nav_msgs::Odometry::ConstPtr& odom)
   odomZ[odomPointerLast] = vehicleZ;
 }
 
-void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr& laserCloud2)
+// void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr& laserCloud2)
+void laserCloudHandler(const sensor_msgs::msg::PointCloud2::ConstSharedPtr laserCloud2)
 {
   if (systemInitDelay > 0) {
     systemInitDelay--;
@@ -297,11 +323,15 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr& laserCloud2)
   newlaserCloud = true;
 }
 
-void trackPointHandler(const nav_msgs::Odometry::ConstPtr& odom)
+// void trackPointHandler(const nav_msgs::Odometry::ConstPtr& odom)
+void trackPointHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom)
 {
+  // double roll, pitch, yaw;
+  // geometry_msgs::Quaternion geoQuat = odom->pose.pose.orientation;
+  // tf::Matrix3x3(tf::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w)).getRPY(roll, pitch, yaw);
   double roll, pitch, yaw;
-  geometry_msgs::Quaternion geoQuat = odom->pose.pose.orientation;
-  tf::Matrix3x3(tf::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w)).getRPY(roll, pitch, yaw);
+  geometry_msgs::msg::Quaternion geoQuat = odom->pose.pose.orientation;
+  tf2::Matrix3x3(tf2::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w)).getRPY(roll, pitch, yaw);
 
   trackRoll = roll;
   trackPitch = pitch;
@@ -492,7 +522,8 @@ void readCorrespondences()
   fclose(filePtr);
 }
 
-void joystickHandler(const sensor_msgs::Joy::ConstPtr& joy)
+// void joystickHandler(const sensor_msgs::Joy::ConstPtr& joy)
+void joystickHandler(const sensor_msgs::msg::Joy::ConstSharedPtr joy)
 {
   if (joy->axes[2] >= -0.1 || joy->axes[5] < -0.1) {
     joyFwd = joy->axes[4];
@@ -522,7 +553,8 @@ void joystickHandler(const sensor_msgs::Joy::ConstPtr& joy)
   }
 }
 
-void goalHandler(const geometry_msgs::PointStamped::ConstPtr& goal)
+// void goalHandler(const geometry_msgs::PointStamped::ConstPtr& goal)
+void goalHandler(const geometry_msgs::msg::PointStamped::ConstSharedPtr goal)
 {
   goalX = goal->point.x;
   goalY = goal->point.y;
@@ -531,7 +563,8 @@ void goalHandler(const geometry_msgs::PointStamped::ConstPtr& goal)
   if (goalZ > maxElev) goalZ = maxElev;
 }
 
-void autoModeHandler(const std_msgs::Float32::ConstPtr& autoMode)
+// void autoModeHandler(const std_msgs::Float32::ConstPtr& autoMode)
+void autoModeHandler(const std_msgs::msg::Float32::ConstSharedPtr autoMode)
 {
   if (autonomyMode) {
     if (autoMode->data < -0.5) {
@@ -546,7 +579,8 @@ void autoModeHandler(const std_msgs::Float32::ConstPtr& autoMode)
   }
 }
 
-void clearSurrCloudHandler(const std_msgs::Empty::ConstPtr& clear)
+// void clearSurrCloudHandler(const std_msgs::Empty::ConstPtr& clear)
+void clearSurrCloudHandler(const std_msgs::msg::Empty::ConstSharedPtr clear)
 {
   laserCloudKeep->clear();
   laserCloudKeepDwz->clear();
@@ -554,48 +588,131 @@ void clearSurrCloudHandler(const std_msgs::Empty::ConstPtr& clear)
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "localPlanner");
-  ros::NodeHandle nh;
-  ros::NodeHandle nhPrivate = ros::NodeHandle("~");
+  // ros::init(argc, argv, "localPlanner");
+  // ros::NodeHandle nh;
+  // ros::NodeHandle nhPrivate = ros::NodeHandle("~");
 
-  nhPrivate.getParam("pathFolder", pathFolder);
-  nhPrivate.getParam("stateEstimationTopic", stateEstimationTopic);
-  nhPrivate.getParam("autonomyMode", autonomyMode);
-  nhPrivate.getParam("depthCloudTopic", depthCloudTopic);
-  nhPrivate.getParam("depthCloudDelay", depthCloudDelay);
-  nhPrivate.getParam("depthCamPitchOffset", depthCamPitchOffset);
-  nhPrivate.getParam("depthCamXOffset", depthCamXOffset);
-  nhPrivate.getParam("depthCamYOffset", depthCamYOffset);
-  nhPrivate.getParam("depthCamZOffset", depthCamZOffset);
-  nhPrivate.getParam("trackingCamBackward", trackingCamBackward);
-  nhPrivate.getParam("trackingCamXOffset", trackingCamXOffset);
-  nhPrivate.getParam("trackingCamYOffset", trackingCamYOffset);
-  nhPrivate.getParam("trackingCamZOffset", trackingCamZOffset);
-  nhPrivate.getParam("trackingCamScale", trackingCamScale);
-  nhPrivate.getParam("scanVoxelSize", scanVoxelSize);
-  nhPrivate.getParam("pointPerPathThre", pointPerPathThre);
-  nhPrivate.getParam("maxRange", maxRange);
-  nhPrivate.getParam("maxElev", maxElev);
-  nhPrivate.getParam("keepSurrCloud", keepSurrCloud);
-  nhPrivate.getParam("keepHoriDis", keepHoriDis);
-  nhPrivate.getParam("keepVertDis", keepVertDis);
-  nhPrivate.getParam("lowerBoundZ", lowerBoundZ);
-  nhPrivate.getParam("upperBoundZ", upperBoundZ);
-  nhPrivate.getParam("pitchDiffLimit", pitchDiffLimit);
-  nhPrivate.getParam("pitchWeight", pitchWeight);
-  nhPrivate.getParam("sensorMaxPitch", sensorMaxPitch);
-  nhPrivate.getParam("sensorMaxYaw", sensorMaxYaw);
-  nhPrivate.getParam("yawDiffLimit", yawDiffLimit);
-  nhPrivate.getParam("yawWeight", yawWeight);
-  nhPrivate.getParam("pathScale", pathScale);
-  nhPrivate.getParam("minPathScale", minPathScale);
-  nhPrivate.getParam("pathScaleStep", pathScaleStep);
-  nhPrivate.getParam("pathScaleBySpeed", pathScaleBySpeed);
-  nhPrivate.getParam("stopDis", stopDis);
-  nhPrivate.getParam("shiftGoalAtStart", shiftGoalAtStart);
-  nhPrivate.getParam("goalX", goalX);
-  nhPrivate.getParam("goalY", goalY);
-  nhPrivate.getParam("goalZ", goalZ);
+  rclcpp::init(argc, argv);
+  auto nh = rclcpp::Node::make_shared("localPlanner");
+
+  // nhPrivate.getParam("pathFolder", pathFolder);
+  // nhPrivate.getParam("stateEstimationTopic", stateEstimationTopic);
+  // nhPrivate.getParam("autonomyMode", autonomyMode);
+  // nhPrivate.getParam("depthCloudTopic", depthCloudTopic);
+  // nhPrivate.getParam("depthCloudDelay", depthCloudDelay);
+  // nhPrivate.getParam("depthCamPitchOffset", depthCamPitchOffset);
+  // nhPrivate.getParam("depthCamXOffset", depthCamXOffset);
+  // nhPrivate.getParam("depthCamYOffset", depthCamYOffset);
+  // nhPrivate.getParam("depthCamZOffset", depthCamZOffset);
+  // nhPrivate.getParam("trackingCamBackward", trackingCamBackward);
+  // nhPrivate.getParam("trackingCamXOffset", trackingCamXOffset);
+  // nhPrivate.getParam("trackingCamYOffset", trackingCamYOffset);
+  // nhPrivate.getParam("trackingCamZOffset", trackingCamZOffset);
+  // nhPrivate.getParam("trackingCamScale", trackingCamScale);
+  // nhPrivate.getParam("scanVoxelSize", scanVoxelSize);
+  // nhPrivate.getParam("pointPerPathThre", pointPerPathThre);
+  // nhPrivate.getParam("maxRange", maxRange);
+  // nhPrivate.getParam("maxElev", maxElev);
+  // nhPrivate.getParam("keepSurrCloud", keepSurrCloud);
+  // nhPrivate.getParam("keepHoriDis", keepHoriDis);
+  // nhPrivate.getParam("keepVertDis", keepVertDis);
+  // nhPrivate.getParam("lowerBoundZ", lowerBoundZ);
+  // nhPrivate.getParam("upperBoundZ", upperBoundZ);
+  // nhPrivate.getParam("pitchDiffLimit", pitchDiffLimit);
+  // nhPrivate.getParam("pitchWeight", pitchWeight);
+  // nhPrivate.getParam("sensorMaxPitch", sensorMaxPitch);
+  // nhPrivate.getParam("sensorMaxYaw", sensorMaxYaw);
+  // nhPrivate.getParam("yawDiffLimit", yawDiffLimit);
+  // nhPrivate.getParam("yawWeight", yawWeight);
+  // nhPrivate.getParam("pathScale", pathScale);
+  // nhPrivate.getParam("minPathScale", minPathScale);
+  // nhPrivate.getParam("pathScaleStep", pathScaleStep);
+  // nhPrivate.getParam("pathScaleBySpeed", pathScaleBySpeed);
+  // nhPrivate.getParam("stopDis", stopDis);
+  // nhPrivate.getParam("shiftGoalAtStart", shiftGoalAtStart);
+  // nhPrivate.getParam("goalX", goalX);
+  // nhPrivate.getParam("goalY", goalY);
+  // nhPrivate.getParam("goalZ", goalZ);
+
+  nh->declare_parameter<std::string>("pathFolder", pathFolder);
+  nh->declare_parameter<std::string>("stateEstimationTopic", stateEstimationTopic);
+  nh->declare_parameter<bool>("autonomyMode", autonomyMode);
+  nh->declare_parameter<std::string>("depthCloudTopic", depthCloudTopic);
+  nh->declare_parameter<double>("depthCloudDelay", depthCloudDelay);
+  nh->declare_parameter<double>("depthCamPitchOffset", depthCamPitchOffset);
+  nh->declare_parameter<double>("depthCamXOffset", depthCamXOffset);
+  nh->declare_parameter<double>("depthCamYOffset", depthCamYOffset);
+  nh->declare_parameter<double>("depthCamZOffset", depthCamZOffset);
+  nh->declare_parameter<bool>("trackingCamBackward", trackingCamBackward);
+  nh->declare_parameter<double>("trackingCamXOffset", trackingCamXOffset);
+  nh->declare_parameter<double>("trackingCamYOffset", trackingCamYOffset);
+  nh->declare_parameter<double>("trackingCamZOffset", trackingCamZOffset);
+  nh->declare_parameter<double>("trackingCamScale", trackingCamScale);
+  nh->declare_parameter<double>("scanVoxelSize", scanVoxelSize);
+  nh->declare_parameter<int>("pointPerPathThre", pointPerPathThre);
+  nh->declare_parameter<double>("maxRange", maxRange);
+  nh->declare_parameter<double>("maxElev", maxElev);
+  nh->declare_parameter<bool>("keepSurrCloud", keepSurrCloud);
+  nh->declare_parameter<double>("keepHoriDis", keepHoriDis);
+  nh->declare_parameter<double>("keepVertDis", keepVertDis);
+  nh->declare_parameter<double>("lowerBoundZ", lowerBoundZ);
+  nh->declare_parameter<double>("upperBoundZ", upperBoundZ);
+  nh->declare_parameter<double>("pitchDiffLimit", pitchDiffLimit);
+  nh->declare_parameter<double>("pitchWeight", pitchWeight);
+  nh->declare_parameter<double>("sensorMaxPitch", sensorMaxPitch);
+  nh->declare_parameter<double>("sensorMaxYaw", sensorMaxYaw);
+  nh->declare_parameter<double>("yawDiffLimit", yawDiffLimit);
+  nh->declare_parameter<double>("yawWeight", yawWeight);
+  nh->declare_parameter<double>("pathScale", pathScale);
+  nh->declare_parameter<double>("minPathScale", minPathScale);
+  nh->declare_parameter<double>("pathScaleStep", pathScaleStep);
+  nh->declare_parameter<bool>("pathScaleBySpeed", pathScaleBySpeed);
+  nh->declare_parameter<double>("stopDis", stopDis);
+  nh->declare_parameter<bool>("shiftGoalAtStart", shiftGoalAtStart);
+  nh->declare_parameter<double>("goalX", goalX);
+  nh->declare_parameter<double>("goalY", goalY);
+  nh->declare_parameter<double>("goalZ", goalZ);
+
+  nh->get_parameter("pathFolder", pathFolder);
+  nh->get_parameter("stateEstimationTopic", stateEstimationTopic);
+  nh->get_parameter("autonomyMode", autonomyMode);
+  nh->get_parameter("depthCloudTopic", depthCloudTopic);
+  nh->get_parameter("depthCloudDelay", depthCloudDelay);
+  nh->get_parameter("depthCamPitchOffset", depthCamPitchOffset);
+  nh->get_parameter("depthCamXOffset", depthCamXOffset);
+  nh->get_parameter("depthCamYOffset", depthCamYOffset);
+  nh->get_parameter("depthCamZOffset", depthCamZOffset);
+  nh->get_parameter("trackingCamBackward", trackingCamBackward);
+  nh->get_parameter("trackingCamXOffset", trackingCamXOffset);
+  nh->get_parameter("trackingCamYOffset", trackingCamYOffset);
+  nh->get_parameter("trackingCamZOffset", trackingCamZOffset);
+  nh->get_parameter("trackingCamScale", trackingCamScale);
+  nh->get_parameter("scanVoxelSize", scanVoxelSize);
+  nh->get_parameter("pointPerPathThre", pointPerPathThre);
+  nh->get_parameter("maxRange", maxRange);
+  nh->get_parameter("maxElev", maxElev);
+  nh->get_parameter("keepSurrCloud", keepSurrCloud);
+  nh->get_parameter("keepHoriDis", keepHoriDis);
+  nh->get_parameter("keepVertDis", keepVertDis);
+  nh->get_parameter("lowerBoundZ", lowerBoundZ);
+  nh->get_parameter("upperBoundZ", upperBoundZ);
+  nh->get_parameter("pitchDiffLimit", pitchDiffLimit);
+  nh->get_parameter("pitchWeight", pitchWeight);
+  nh->get_parameter("sensorMaxPitch", sensorMaxPitch);
+  nh->get_parameter("sensorMaxYaw", sensorMaxYaw);
+  nh->get_parameter("yawDiffLimit", yawDiffLimit);
+  nh->get_parameter("yawWeight", yawWeight);
+  nh->get_parameter("pathScale", pathScale);
+  nh->get_parameter("minPathScale", minPathScale);
+  nh->get_parameter("pathScaleStep", pathScaleStep);
+  nh->get_parameter("pathScaleBySpeed", pathScaleBySpeed);
+  nh->get_parameter("stopDis", stopDis);
+  nh->get_parameter("shiftGoalAtStart", shiftGoalAtStart);
+  nh->get_parameter("goalX", goalX);
+  nh->get_parameter("goalY", goalY);
+  nh->get_parameter("goalZ", goalZ);
+
+  pathFolder.replace(pathFolder.find("/install/"), 8, "/src");
 
   if (goalZ > maxElev) goalZ = maxElev;
   if (autonomyMode) {
@@ -603,27 +720,40 @@ int main(int argc, char** argv)
     joyFwd = 1.0;
   }
 
-  ros::Subscriber subStateEstimation = nh.subscribe<nav_msgs::Odometry> (stateEstimationTopic, 5, stateEstimationHandler);
+  // ros::Subscriber subStateEstimation = nh.subscribe<nav_msgs::Odometry> (stateEstimationTopic, 5, stateEstimationHandler);
+  auto subStateEstimation = nh->create_subscription<nav_msgs::msg::Odometry>(stateEstimationTopic, 5, stateEstimationHandler);
 
-  ros::Subscriber subLaserCloud = nh.subscribe<sensor_msgs::PointCloud2> (depthCloudTopic, 5, laserCloudHandler);
+  // ros::Subscriber subLaserCloud = nh.subscribe<sensor_msgs::PointCloud2> (depthCloudTopic, 5, laserCloudHandler);
+  auto subLaserCloud = nh->create_subscription<sensor_msgs::msg::PointCloud2>(depthCloudTopic, 5, laserCloudHandler);
 
-  ros::Subscriber subTrackPoint = nh.subscribe<nav_msgs::Odometry> ("/track_point_odom", 5, trackPointHandler);
+  // ros::Subscriber subTrackPoint = nh.subscribe<nav_msgs::Odometry> ("/track_point_odom", 5, trackPointHandler);
+  auto subTrackPoint = nh->create_subscription<nav_msgs::msg::Odometry>("/track_point_odom", 5, trackPointHandler);
 
-  ros::Subscriber subJoystick = nh.subscribe<sensor_msgs::Joy> ("/joy", 5, joystickHandler);
+  // ros::Subscriber subJoystick = nh.subscribe<sensor_msgs::Joy> ("/joy", 5, joystickHandler);
+  auto subJoystick = nh->create_subscription<sensor_msgs::msg::Joy>("/joy", 5, joystickHandler);
 
-  ros::Subscriber subGoal = nh.subscribe<geometry_msgs::PointStamped> ("/way_point", 5, goalHandler);
+  // ros::Subscriber subGoal = nh.subscribe<geometry_msgs::PointStamped> ("/way_point", 5, goalHandler);
+  auto subGoal = nh->create_subscription<geometry_msgs::msg::PointStamped> ("/way_point", 5, goalHandler);
 
-  ros::Subscriber subAutoMode = nh.subscribe<std_msgs::Float32> ("/auto_mode", 5, autoModeHandler);
+  // ros::Subscriber subAutoMode = nh.subscribe<std_msgs::Float32> ("/auto_mode", 5, autoModeHandler);
+  auto subAutoMode = nh->create_subscription<std_msgs::msg::Float32> ("/auto_mode", 5, autoModeHandler);
 
-  ros::Subscriber subClearSurrCloud = nh.subscribe<std_msgs::Empty> ("/clear_surr_cloud", 5, clearSurrCloudHandler);
+  // ros::Subscriber subClearSurrCloud = nh.subscribe<std_msgs::Empty> ("/clear_surr_cloud", 5, clearSurrCloudHandler);
+  auto subClearSurrCloud = nh->create_subscription<std_msgs::msg::Empty> ("/clear_surr_cloud", 5, clearSurrCloudHandler);
 
-  ros::Publisher pubPath = nh.advertise<nav_msgs::Path> ("/path", 5);
-  nav_msgs::Path path;
+  // ros::Publisher pubPath = nh.advertise<nav_msgs::Path> ("/path", 5);
+  auto pubPath = nh->create_publisher<nav_msgs::msg::Path>("/path", 5);
+
+  // nav_msgs::Path path;
+  nav_msgs::msg::Path path;
+
 
   #if PLOTPATHSET == 1
-  ros::Publisher pubFreePaths = nh.advertise<sensor_msgs::PointCloud2> ("/free_paths", 2);
+  // ros::Publisher pubFreePaths = nh.advertise<sensor_msgs::PointCloud2> ("/free_paths", 2);
+  auto pubFreePaths = nh->create_publisher<sensor_msgs::msg::PointCloud2>("/free_paths", 2);
 
-  ros::Publisher pubLaserCloud = nh.advertise<sensor_msgs::PointCloud2> ("/collision_avoidance_cloud", 2);
+  // ros::Publisher pubLaserCloud = nh.advertise<sensor_msgs::PointCloud2> ("/collision_avoidance_cloud", 2);
+  auto pubLaserCloud = nh->create_publisher<sensor_msgs::msg::PointCloud2>("/collision_avoidance_cloud", 2);
   #endif
 
   printf ("\nReading path files.\n");
@@ -654,10 +784,13 @@ int main(int argc, char** argv)
 
   printf ("\nInitialization complete.\n\n");
 
-  ros::Rate rate(100);
-  bool status = ros::ok();
+  // ros::Rate rate(100);
+  // bool status = ros::ok();
+  rclcpp::Rate rate(100);
+  bool status = rclcpp::ok();
   while (status) {
-    ros::spinOnce();
+    // ros::spinOnce();
+    rclcpp::spin_some(nh);
 
     if (newlaserCloud) {
       newlaserCloud = false;
@@ -676,11 +809,16 @@ int main(int argc, char** argv)
       downSizeFilter.filter(*plannerCloud);
 
       #if PLOTPATHSET == 1
-      sensor_msgs::PointCloud2 plannerCloud2;
+      // sensor_msgs::PointCloud2 plannerCloud2;
+      // pcl::toROSMsg(*plannerCloud, plannerCloud2);
+      // plannerCloud2.header.stamp = ros::Time().fromSec(laserTime);
+      // plannerCloud2.header.frame_id = "map";
+      // pubLaserCloud.publish(plannerCloud2);
+      sensor_msgs::msg::PointCloud2 plannerCloud2;
       pcl::toROSMsg(*plannerCloud, plannerCloud2);
-      plannerCloud2.header.stamp = ros::Time().fromSec(laserTime);
+      plannerCloud2.header.stamp = rclcpp::Time(static_cast<uint64_t>(laserTime * 1e9));
       plannerCloud2.header.frame_id = "map";
-      pubLaserCloud.publish(plannerCloud2);
+      pubLaserCloud->publish(plannerCloud2);
       #endif
 
       float sinTrackPitch = sin(trackPitch);
@@ -829,9 +967,12 @@ int main(int argc, char** argv)
             }
           }
 
-          path.header.stamp = ros::Time().fromSec(laserTime);
+          // path.header.stamp = ros::Time().fromSec(laserTime);
+          // path.header.frame_id = "track_point";
+          // pubPath.publish(path);
+          path.header.stamp = rclcpp::Time(static_cast<uint64_t>(laserTime * 1e9));
           path.header.frame_id = "track_point";
-          pubPath.publish(path);
+          pubPath->publish(path);
           pathPublished = true;
 
           #if PLOTPATHSET == 1
@@ -854,11 +995,16 @@ int main(int argc, char** argv)
             }
           }
 
-          sensor_msgs::PointCloud2 freePaths2;
+          // sensor_msgs::PointCloud2 freePaths2;
+          // pcl::toROSMsg(*freePaths, freePaths2);
+          // freePaths2.header.stamp = ros::Time().fromSec(laserTime);
+          // freePaths2.header.frame_id = "track_point";
+          // pubFreePaths.publish(freePaths2);
+          sensor_msgs::msg::PointCloud2 freePaths2;
           pcl::toROSMsg(*freePaths, freePaths2);
-          freePaths2.header.stamp = ros::Time().fromSec(laserTime);
+          freePaths2.header.stamp = rclcpp::Time(static_cast<uint64_t>(laserTime * 1e9));
           freePaths2.header.frame_id = "track_point";
-          pubFreePaths.publish(freePaths2);
+          pubFreePaths->publish(freePaths2);
           #endif
         }
 
@@ -876,22 +1022,31 @@ int main(int argc, char** argv)
         path.poses[0].pose.position.y = 0;
         path.poses[0].pose.position.z = 0;
 
-        path.header.stamp = ros::Time().fromSec(laserTime);
+        // path.header.stamp = ros::Time().fromSec(laserTime);
+        // path.header.frame_id = "track_point";
+        // pubPath.publish(path);
+        path.header.stamp = rclcpp::Time(static_cast<uint64_t>(laserTime * 1e9));
         path.header.frame_id = "track_point";
-        pubPath.publish(path);
+        pubPath->publish(path);
 
         #if PLOTPATHSET == 1
         freePaths->clear();
-        sensor_msgs::PointCloud2 freePaths2;
+        // sensor_msgs::PointCloud2 freePaths2;
+        // pcl::toROSMsg(*freePaths, freePaths2);
+        // freePaths2.header.stamp = ros::Time().fromSec(laserTime);
+        // freePaths2.header.frame_id = "track_point";
+        // pubFreePaths.publish(freePaths2);
+        sensor_msgs::msg::PointCloud2 freePaths2;
         pcl::toROSMsg(*freePaths, freePaths2);
-        freePaths2.header.stamp = ros::Time().fromSec(laserTime);
+        freePaths2.header.stamp = rclcpp::Time(static_cast<uint64_t>(laserTime * 1e9));
         freePaths2.header.frame_id = "track_point";
-        pubFreePaths.publish(freePaths2);
+        pubFreePaths->publish(freePaths2);
         #endif
       }
     }
 
-    status = ros::ok();
+    // status = ros::ok();
+    status = rclcpp::ok();
     rate.sleep();
   }
 
