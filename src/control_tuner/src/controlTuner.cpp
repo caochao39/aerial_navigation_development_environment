@@ -2,14 +2,25 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <ros/ros.h>
+// #include <ros/ros.h>
+#include "rclcpp/rclcpp.hpp"
+#include "rclcpp/time.hpp"
+#include "rclcpp/clock.hpp"
+#include "builtin_interfaces/msg/time.hpp"
 
-#include <nav_msgs/Odometry.h>
-#include <geometry_msgs/PointStamped.h>
-#include <sensor_msgs/Joy.h>
+// #include <nav_msgs/Odometry.h>
+// #include <geometry_msgs/PointStamped.h>
+// #include <sensor_msgs/Joy.h>
+#include <nav_msgs/msg/odometry.hpp>
+#include <geometry_msgs/msg/point_stamped.hpp>
+#include <geometry_msgs/msg/twist_stamped.hpp>
+#include <sensor_msgs/msg/joy.hpp>
 
-#include <tf/transform_datatypes.h>
-#include <tf/transform_broadcaster.h>
+// #include <tf/transform_datatypes.h>
+// #include <tf/transform_broadcaster.h>
+#include <tf2/transform_datatypes.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 using namespace std;
 
@@ -71,10 +82,13 @@ float vehicleAngRateX = 0;
 float vehicleAngRateY = 0;
 float vehicleAngRateZ = 0;
 
-geometry_msgs::TwistStamped control_cmd;
-ros::Publisher *pubControlPointer;
+// geometry_msgs::TwistStamped control_cmd;
+geometry_msgs::msg::TwistStamped control_cmd;
+// ros::Publisher *pubControlPointer;
+rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr pubControl;
 
-void stateEstimationHandler(const nav_msgs::Odometry::ConstPtr& odom)
+// void stateEstimationHandler(const nav_msgs::Odometry::ConstPtr& odom)
+void stateEstimationHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom)
 {
   if (initCount >= 0 && shiftGoalAtStart) {
     if (initCount == 0) {
@@ -93,9 +107,13 @@ void stateEstimationHandler(const nav_msgs::Odometry::ConstPtr& odom)
     pubSkipCount = pubSkipNum;
   }
 
+  // double roll, pitch, yaw;
+  // geometry_msgs::Quaternion geoQuat = odom->pose.pose.orientation;
+  // tf::Matrix3x3(tf::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w)).getRPY(roll, pitch, yaw);
   double roll, pitch, yaw;
-  geometry_msgs::Quaternion geoQuat = odom->pose.pose.orientation;
-  tf::Matrix3x3(tf::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w)).getRPY(roll, pitch, yaw);
+  geometry_msgs::msg::Quaternion geoQuat = odom->pose.pose.orientation;
+  tf2::Matrix3x3(tf2::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w)).getRPY(roll, pitch, yaw);
+
 
   vehicleX = trackingCamScale * odom->pose.pose.position.x;
   vehicleY = trackingCamScale * odom->pose.pose.position.y;
@@ -230,10 +248,12 @@ void stateEstimationHandler(const nav_msgs::Odometry::ConstPtr& odom)
 
   control_cmd.header.stamp = odom->header.stamp;
   control_cmd.header.frame_id = "vehicle";
-  pubControlPointer->publish(control_cmd);
+  // pubControlPointer->publish(control_cmd);
+  pubControl->publish(control_cmd);
 }
 
-void joystickHandler(const sensor_msgs::Joy::ConstPtr& joy)
+// void joystickHandler(const sensor_msgs::Joy::ConstPtr& joy)
+void joystickHandler(const sensor_msgs::msg::Joy::ConstSharedPtr joy)
 {
   joyFwd = joy->axes[4];
   if (fabs(joyFwd) < joyDeadband) joyFwd = 0;
@@ -256,7 +276,8 @@ void joystickHandler(const sensor_msgs::Joy::ConstPtr& joy)
   else if (desiredSpeed > maxSpeed) desiredSpeed = maxSpeed;
 }
 
-void goalHandler(const geometry_msgs::PointStamped::ConstPtr& goal)
+// void goalHandler(const geometry_msgs::PointStamped::ConstPtr& goal)
+void goalHandler(const geometry_msgs::msg::PointStamped::ConstSharedPtr goal)
 {
   goalX = goal->point.x;
   goalY = goal->point.y;
@@ -267,54 +288,126 @@ void goalHandler(const geometry_msgs::PointStamped::ConstPtr& goal)
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "controlTuner");
-  ros::NodeHandle nh;
-  ros::NodeHandle nhPrivate = ros::NodeHandle("~");
+  // ros::init(argc, argv, "controlTuner");
+  // ros::NodeHandle nh;
+  // ros::NodeHandle nhPrivate = ros::NodeHandle("~");
+  rclcpp::init(argc, argv);
+  auto nh = rclcpp::Node::make_shared("controlTuner");
 
-  nhPrivate.getParam("stateEstimationTopic", stateEstimationTopic);
-  nhPrivate.getParam("pubSkipNum", pubSkipNum);
-  nhPrivate.getParam("trackingCamBackward", trackingCamBackward);
-  nhPrivate.getParam("trackingCamXOffset", trackingCamXOffset);
-  nhPrivate.getParam("trackingCamYOffset", trackingCamYOffset);
-  nhPrivate.getParam("trackingCamZOffset", trackingCamZOffset);
-  nhPrivate.getParam("trackingCamScale", trackingCamScale);
-  nhPrivate.getParam("lookAheadScale", lookAheadScale);
-  nhPrivate.getParam("minSpeed", minSpeed);
-  nhPrivate.getParam("maxSpeed", maxSpeed);
-  nhPrivate.getParam("velXYGain", velXYGain);
-  nhPrivate.getParam("posXYGain", posXYGain);
-  nhPrivate.getParam("stopVelXYGain", stopVelXYGain);
-  nhPrivate.getParam("stopPosXYGain", stopPosXYGain);
-  nhPrivate.getParam("smoothIncrSpeed", smoothIncrSpeed);
-  nhPrivate.getParam("maxRollPitch", maxRollPitch);
-  nhPrivate.getParam("yawGain", yawGain);
-  nhPrivate.getParam("maxRateByYaw", maxRateByYaw);
-  nhPrivate.getParam("posZGain", posZGain);
-  nhPrivate.getParam("maxVelByPosZ", maxVelByPosZ);
-  nhPrivate.getParam("manualSpeedXY", manualSpeedXY);
-  nhPrivate.getParam("manualSpeedZ", manualSpeedZ);
-  nhPrivate.getParam("manualYawRate", manualYawRate);
-  nhPrivate.getParam("stopDis", stopDis);
-  nhPrivate.getParam("slowDis", slowDis);
-  nhPrivate.getParam("fixGoalYaw", fixGoalYaw);
-  nhPrivate.getParam("shiftGoalAtStart", shiftGoalAtStart);
-  nhPrivate.getParam("goalYaw", goalYaw);
-  nhPrivate.getParam("goalX", goalX);
-  nhPrivate.getParam("goalY", goalY);
-  nhPrivate.getParam("goalZ", goalZ);
+  // nhPrivate.getParam("stateEstimationTopic", stateEstimationTopic);
+  // nhPrivate.getParam("pubSkipNum", pubSkipNum);
+  // nhPrivate.getParam("trackingCamBackward", trackingCamBackward);
+  // nhPrivate.getParam("trackingCamXOffset", trackingCamXOffset);
+  // nhPrivate.getParam("trackingCamYOffset", trackingCamYOffset);
+  // nhPrivate.getParam("trackingCamZOffset", trackingCamZOffset);
+  // nhPrivate.getParam("trackingCamScale", trackingCamScale);
+  // nhPrivate.getParam("lookAheadScale", lookAheadScale);
+  // nhPrivate.getParam("minSpeed", minSpeed);
+  // nhPrivate.getParam("maxSpeed", maxSpeed);
+  // nhPrivate.getParam("velXYGain", velXYGain);
+  // nhPrivate.getParam("posXYGain", posXYGain);
+  // nhPrivate.getParam("stopVelXYGain", stopVelXYGain);
+  // nhPrivate.getParam("stopPosXYGain", stopPosXYGain);
+  // nhPrivate.getParam("smoothIncrSpeed", smoothIncrSpeed);
+  // nhPrivate.getParam("maxRollPitch", maxRollPitch);
+  // nhPrivate.getParam("yawGain", yawGain);
+  // nhPrivate.getParam("maxRateByYaw", maxRateByYaw);
+  // nhPrivate.getParam("posZGain", posZGain);
+  // nhPrivate.getParam("maxVelByPosZ", maxVelByPosZ);
+  // nhPrivate.getParam("manualSpeedXY", manualSpeedXY);
+  // nhPrivate.getParam("manualSpeedZ", manualSpeedZ);
+  // nhPrivate.getParam("manualYawRate", manualYawRate);
+  // nhPrivate.getParam("stopDis", stopDis);
+  // nhPrivate.getParam("slowDis", slowDis);
+  // nhPrivate.getParam("fixGoalYaw", fixGoalYaw);
+  // nhPrivate.getParam("shiftGoalAtStart", shiftGoalAtStart);
+  // nhPrivate.getParam("goalYaw", goalYaw);
+  // nhPrivate.getParam("goalX", goalX);
+  // nhPrivate.getParam("goalY", goalY);
+  // nhPrivate.getParam("goalZ", goalZ);
+
+  nh->declare_parameter<std::string>("stateEstimationTopic", stateEstimationTopic);
+  nh->declare_parameter<int>("pubSkipNum", pubSkipNum);
+  nh->declare_parameter<bool>("trackingCamBackward", trackingCamBackward);
+  nh->declare_parameter<double>("trackingCamXOffset", trackingCamXOffset);
+  nh->declare_parameter<double>("trackingCamYOffset", trackingCamYOffset);
+  nh->declare_parameter<double>("trackingCamZOffset", trackingCamZOffset);
+  nh->declare_parameter<double>("trackingCamScale", trackingCamScale);
+  nh->declare_parameter<double>("lookAheadScale", lookAheadScale);
+  nh->declare_parameter<double>("minSpeed", minSpeed);
+  nh->declare_parameter<double>("maxSpeed", maxSpeed);
+  nh->declare_parameter<double>("velXYGain", velXYGain);
+  nh->declare_parameter<double>("posXYGain", posXYGain);
+  nh->declare_parameter<double>("stopVelXYGain", stopVelXYGain);
+  nh->declare_parameter<double>("stopPosXYGain", stopPosXYGain);
+  nh->declare_parameter<double>("smoothIncrSpeed", smoothIncrSpeed);
+  nh->declare_parameter<double>("maxRollPitch", maxRollPitch);
+  nh->declare_parameter<double>("yawGain", yawGain);
+  nh->declare_parameter<double>("maxRateByYaw", maxRateByYaw);
+  nh->declare_parameter<double>("posZGain", posZGain);
+  nh->declare_parameter<double>("maxVelByPosZ", maxVelByPosZ);
+  nh->declare_parameter<double>("manualSpeedXY", manualSpeedXY);
+  nh->declare_parameter<double>("manualSpeedZ", manualSpeedZ);
+  nh->declare_parameter<double>("manualYawRate", manualYawRate);
+  nh->declare_parameter<double>("stopDis", stopDis);
+  nh->declare_parameter<double>("slowDis", slowDis);
+  nh->declare_parameter<bool>("fixGoalYaw", fixGoalYaw);
+  nh->declare_parameter<bool>("shiftGoalAtStart", shiftGoalAtStart);
+  nh->declare_parameter<double>("goalYaw", goalYaw);
+  nh->declare_parameter<double>("goalX", goalX);
+  nh->declare_parameter<double>("goalY", goalY);
+  nh->declare_parameter<double>("goalZ", goalZ);
+
+  nh->get_parameter("stateEstimationTopic", stateEstimationTopic);
+  nh->get_parameter("pubSkipNum", pubSkipNum);
+  nh->get_parameter("trackingCamBackward", trackingCamBackward);
+  nh->get_parameter("trackingCamXOffset", trackingCamXOffset);
+  nh->get_parameter("trackingCamYOffset", trackingCamYOffset);
+  nh->get_parameter("trackingCamZOffset", trackingCamZOffset);
+  nh->get_parameter("trackingCamScale", trackingCamScale);
+  nh->get_parameter("lookAheadScale", lookAheadScale);
+  nh->get_parameter("minSpeed", minSpeed);
+  nh->get_parameter("maxSpeed", maxSpeed);
+  nh->get_parameter("velXYGain", velXYGain);
+  nh->get_parameter("posXYGain", posXYGain);
+  nh->get_parameter("stopVelXYGain", stopVelXYGain);
+  nh->get_parameter("stopPosXYGain", stopPosXYGain);
+  nh->get_parameter("smoothIncrSpeed", smoothIncrSpeed);
+  nh->get_parameter("maxRollPitch", maxRollPitch);
+  nh->get_parameter("yawGain", yawGain);
+  nh->get_parameter("maxRateByYaw", maxRateByYaw);
+  nh->get_parameter("posZGain", posZGain);
+  nh->get_parameter("maxVelByPosZ", maxVelByPosZ);
+  nh->get_parameter("manualSpeedXY", manualSpeedXY);
+  nh->get_parameter("manualSpeedZ", manualSpeedZ);
+  nh->get_parameter("manualYawRate", manualYawRate);
+  nh->get_parameter("stopDis", stopDis);
+  nh->get_parameter("slowDis", slowDis);
+  nh->get_parameter("fixGoalYaw", fixGoalYaw);
+  nh->get_parameter("shiftGoalAtStart", shiftGoalAtStart);
+  nh->get_parameter("goalYaw", goalYaw);
+  nh->get_parameter("goalX", goalX);
+  nh->get_parameter("goalY", goalY);
+  nh->get_parameter("goalZ", goalZ);
+
 
   desiredSpeed = minSpeed;
 
-  ros::Subscriber subStateEstimation = nh.subscribe<nav_msgs::Odometry> (stateEstimationTopic, 5, stateEstimationHandler);
+  // ros::Subscriber subStateEstimation = nh.subscribe<nav_msgs::Odometry> (stateEstimationTopic, 5, stateEstimationHandler);
+  auto subStateEstimation = nh->create_subscription<nav_msgs::msg::Odometry>(stateEstimationTopic, 5, stateEstimationHandler);
 
-  ros::Subscriber subJoystick = nh.subscribe<sensor_msgs::Joy> ("/joy", 5, joystickHandler);
+  // ros::Subscriber subJoystick = nh.subscribe<sensor_msgs::Joy> ("/joy", 5, joystickHandler);
+  auto subJoystick = nh->create_subscription<sensor_msgs::msg::Joy> ("/joy", 5, joystickHandler);
 
-  ros::Subscriber subGoal = nh.subscribe<geometry_msgs::PointStamped> ("/way_point", 5, goalHandler);
+  // ros::Subscriber subGoal = nh.subscribe<geometry_msgs::PointStamped> ("/way_point", 5, goalHandler);
+  auto subGoal = nh->create_subscription<geometry_msgs::msg::PointStamped> ("/way_point", 5, goalHandler);
 
-  ros::Publisher pubControl = nh.advertise<geometry_msgs::TwistStamped> ("/attitude_control", 5);
-  pubControlPointer = &pubControl;
+  // ros::Publisher pubControl = nh.advertise<geometry_msgs::TwistStamped> ("/attitude_control", 5);
+  // pubControlPointer = &pubControl;
+  pubControl = nh->create_publisher<geometry_msgs::msg::TwistStamped> ("/attitude_control", 5);
 
-  ros::spin();
+  // ros::spin();
+  rclcpp::spin(nh);
 
   return 0;
 }
