@@ -25,6 +25,7 @@
   <gazebo reference="rgbd_camera">
     <sensor type="depth" name="rgbd_camera">
       <update_rate>20.0</update_rate>
+      <always_on>true</always_on>
       <camera name="head">
         <horizontal_fov>1.65</horizontal_fov>
         <image>
@@ -36,24 +37,20 @@
           <near>0.2</near>
           <far>30.0</far>
         </clip>
+        <distortion>
+          <k1>0.0</k1>
+          <k2>0.0</k2>
+          <k3>0.0</k3>
+          <p1>0.0</p1>
+          <p2>0.0</p2>
+        </distortion>
       </camera>
-      <plugin name="depth_camera_controller" filename="libgazebo_ros_camera.so">
-        <alwaysOn>true</alwaysOn>
+      <plugin name="rgbd_camera_controller" filename="libgazebo_ros_camera.so">
           <baseline>0.2</baseline>
-          <cameraName>rgbd_camera</cameraName>
-          <imageTopicName>/rgbd_camera/color/image</imageTopicName>
-          <cameraInfoTopicName>/rgbd_camera/color/camera_info</cameraInfoTopicName>
-          <depthImageTopicName>/rgbd_camera/depth/image</depthImageTopicName>
-          <depthImageCameraInfoTopicName>/rgbd_camera/depth/camera_info</depthImageCameraInfoTopicName>
-          <pointCloudTopicName>/rgbd_camera/points</pointCloudTopicName>
-          <frameName>rgbd_camera</frameName>
-          <pointCloudCutoff>0.1</pointCloudCutoff>
-          <pointCloudCutoffMax>6.0</pointCloudCutoffMax>
-          <distortionK1>0</distortionK1>
-          <distortionK2>0</distortionK2>
-          <distortionK3>0</distortionK3>
-          <distortionT1>0</distortionT1>
-          <distortionT2>0</distortionT2>
+          <camera_name>rgbd_camera</camera_name>
+          <frame_name>rgbd_camera</frame_name>
+          <min_depth>0.1</min_depth>
+          <pointCloudCutoffMax>30.0</pointCloudCutoffMax>
       </plugin>
     </sensor>
   </gazebo>

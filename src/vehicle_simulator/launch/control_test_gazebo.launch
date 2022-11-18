@@ -37,7 +37,7 @@ def generate_launch_description():
   declare_vehicleYaw = DeclareLaunchArgument('vehicleYaw', default_value='0.0', description='')
   declare_use_gazebo = DeclareLaunchArgument('use_gazebo', default_value='true', description='')
   declare_gazebo_gui = DeclareLaunchArgument('gazebo_gui', default_value='true', description='')
-  declare_world_name = DeclareLaunchArgument('world_name', default_value='office', description='')
+  declare_world_name = DeclareLaunchArgument('world_name', default_value='office_simple', description='')
   declare_realtime_factor = DeclareLaunchArgument('realtime_factor', default_value='1.0', description='')
 
   start_control_tuner = IncludeLaunchDescription(
