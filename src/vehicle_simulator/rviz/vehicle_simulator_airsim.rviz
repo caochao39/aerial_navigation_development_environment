@@ -1,5 +1,5 @@
 Panels:
-  - Class: rviz/Displays
+  - Class: rviz_common/Displays
     Help Height: 0
     Name: Displays
     Property Tree Widget:
@@ -8,19 +8,19 @@ Panels:
         - /DepthCloud1/Autocompute Value Bounds1
       Splitter Ratio: 0.8294117450714111
     Tree Height: 667
-  - Class: rviz/Selection
+  - Class: rviz_common/Selection
     Name: Selection
-  - Class: rviz/Tool Properties
+  - Class: rviz_common/Tool Properties
     Expanded:
       - /Waypoint1
     Name: Tool Properties
     Splitter Ratio: 0.5886790156364441
-  - Class: rviz/Views
+  - Class: rviz_common/Views
     Expanded:
       - /Current View1
     Name: Views
     Splitter Ratio: 0.5
-  - Class: rviz/Time
+  - Class: rviz_common/Time
     Experimental: false
     Name: Time
     SyncMode: 0
@@ -32,9 +32,8 @@ Toolbars:
 Visualization Manager:
   Class: ""
   Displays:
-    - Class: rviz/Image
+    - Class: rviz_default_plugins/Image
       Enabled: true
-      Image Topic: /airsim_node/drone0/cam/Scene
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -43,10 +42,15 @@ Visualization Manager:
       Queue Size: 2
       Transport Hint: raw
       Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /airsim_node/drone0/cam/Scene
       Value: true
-    - Class: rviz/Image
+    - Class: rviz_default_plugins/Image
       Enabled: true
-      Image Topic: /airsim_node/drone0/cam/DepthPerspective/converted
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -55,10 +59,15 @@ Visualization Manager:
       Queue Size: 2
       Transport Hint: raw
       Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /airsim_node/drone0/cam/DepthPerspective/converted
       Value: true
-    - Class: rviz/Image
+    - Class: rviz_default_plugins/Image
       Enabled: true
-      Image Topic: /airsim_node/drone0/cam/Segmentation
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -67,16 +76,27 @@ Visualization Manager:
       Queue Size: 2
       Transport Hint: raw
       Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /airsim_node/drone0/cam/Segmentation
       Value: true
-    - Class: rviz/Marker
+    - Class: rviz_default_plugins/Marker
       Enabled: true
-      Marker Topic: /track_point_marker
       Name: TrackMarker
       Namespaces:
         track_point: true
       Queue Size: 100
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /track_point_marker 
       Value: true
-    - Class: rviz/Axes
+    - Class: rviz_default_plugins/Axes
       Enabled: true
       Length: 1.5
       Name: Vehicle
@@ -85,7 +105,7 @@ Visualization Manager:
       Value: true
     - Alpha: 1
       Buffer Length: 1
-      Class: rviz/Path
+      Class: rviz_default_plugins/Path
       Color: 0; 255; 0
       Enabled: false
       Head Diameter: 0.30000001192092896
@@ -114,7 +134,7 @@ Visualization Manager:
         Value: true
       Axis: Z
       Channel Name: intensity
-      Class: rviz/PointCloud2
+      Class: rviz_default_plugins/PointCloud2
       Color: 237; 212; 0
       Color Transformer: FlatColor
       Decay Time: 0
@@ -138,7 +158,7 @@ Visualization Manager:
       Value: true
     - Alpha: 1
       Buffer Length: 1
-      Class: rviz/Path
+      Class: rviz_default_plugins/Path
       Color: 255; 170; 0
       Enabled: true
       Head Diameter: 0.30000001192092896
@@ -167,7 +187,7 @@ Visualization Manager:
         Value: false
       Axis: Z
       Channel Name: intensity
-      Class: rviz/PointCloud2
+      Class: rviz_default_plugins/PointCloud2
       Color: 255; 255; 255
       Color Transformer: AxisColor
       Decay Time: 0
@@ -188,7 +208,7 @@ Visualization Manager:
       Use rainbow: true
       Value: true
     - Alpha: 1
-      Class: rviz/PointStamped
+      Class: rviz_default_plugins/PointStamped
       Color: 204; 41; 204
       Enabled: true
       History Length: 1
@@ -205,14 +225,14 @@ Visualization Manager:
     Frame Rate: 15
   Name: root
   Tools:
-    - Class: rviz/Interact
+    - Class: rviz_default_plugins/Interact
       Hide Inactive Objects: true
-    - Class: rviz/WaypointTool
+    - Class: waypoint_rviz_plugin/WaypointTool
       Topic: waypoint
   Value: true
   Views:
     Current:
-      Class: rviz/Orbit
+      Class: rviz_default_plugins/Orbit
       Distance: 25.00341033935547
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549

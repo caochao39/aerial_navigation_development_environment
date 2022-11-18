@@ -3,23 +3,23 @@
   <arg name="stateEstimationTopic" default="/state_estimation"/>
   <arg name="depthCloudTopic" default="/rgbd_camera/points"/>
   <arg name="autonomyMode" default="false"/>
-  <arg name="depthCloudDelay" default="0"/>
-  <arg name="depthCamPitchOffset" default="0"/>
-  <arg name="depthCamXOffset" default="0"/>
-  <arg name="depthCamYOffset" default="0"/>
-  <arg name="depthCamZOffset" default="0"/>
+  <arg name="depthCloudDelay" default="0.0"/>
+  <arg name="depthCamPitchOffset" default="0.0"/>
+  <arg name="depthCamXOffset" default="0.0"/>
+  <arg name="depthCamYOffset" default="0.0"/>
+  <arg name="depthCamZOffset" default="0.0"/>
   <arg name="trackingCamBackward" default="false"/>
-  <arg name="trackingCamXOffset" default="0"/>
-  <arg name="trackingCamYOffset" default="0"/>
-  <arg name="trackingCamZOffset" default="0"/>
+  <arg name="trackingCamXOffset" default="0.0"/>
+  <arg name="trackingCamYOffset" default="0.0"/>
+  <arg name="trackingCamZOffset" default="0.0"/>
   <arg name="trackingCamScale" default="1.0"/>
   <arg name="stopDis" default="1.0"/>
   <arg name="shiftGoalAtStart" default="false"/>
-  <arg name="goalX" default="0"/>
-  <arg name="goalY" default="0"/>
+  <arg name="goalX" default="0.0"/>
+  <arg name="goalY" default="0.0"/>
   <arg name="goalZ" default="4.0"/>
 
-  <node pkg="local_planner" type="localPlanner" name="localPlanner" output="screen">
+  <node pkg="local_planner" exec="localPlanner" name="localPlanner" output="screen">
     <param name="pathFolder" value="$(find-pkg-prefix local_planner)/paths" />
     <param name="stateEstimationTopic" value="$(var stateEstimationTopic)" />
     <param name="autonomyMode" value="$(var autonomyMode)" />
@@ -60,7 +60,7 @@
     <param name="goalZ" value="$(var goalZ)" />
   </node>
 
-  <node pkg="local_planner" type="pathFollower" name="pathFollower" output="screen">
+  <node pkg="local_planner" exec="pathFollower" name="pathFollower" output="screen">
     <param name="stateEstimationTopic" value="$(var stateEstimationTopic)" />
     <param name="desiredTrajFile" value="$(env HOME)/Desktop/trajectory_desired.txt" />
     <param name="executedTrajFile" value="$(env HOME)/Desktop/trajectory_executed.txt" />
