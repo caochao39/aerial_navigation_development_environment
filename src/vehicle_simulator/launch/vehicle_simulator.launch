@@ -1,47 +1,153 @@
-<launch>
-  <arg name="sensorPitch" default="0"/>
-  <arg name="vehicleX" default="0"/>
-  <arg name="vehicleY" default="0"/>
-  <arg name="vehicleZ" default="1.0"/>
-  <arg name="vehicleYaw" default="0"/>
-  <arg name="paused" default="false"/>
-  <arg name="use_sim_time" default="true"/>
-  <arg name="realtime_factor" default="1.0"/>
-  <arg name="gui" default="false"/>
-  <arg name="headless" default="false"/>
-  <arg name="debug" default="false"/>
-  <arg name="verbose" default="false"/>
-  <arg name="world_name" default="office"/>
-  <arg name="use_gazebo" default="true"/>
+import os
 
-  <group if="$(arg use_gazebo)">
-    <include file="$(find gazebo_ros)/launch/empty_world.launch" >
-      <arg name="paused" value="$(arg paused)"/>
-      <arg name="use_sim_time" value="$(arg use_sim_time)"/>
-      <arg name="gui" value="$(arg gui)"/>
-      <arg name="headless" value="$(arg headless)"/>
-      <arg name="debug" value="$(arg debug)"/>
-      <arg name="verbose" value="$(arg verbose)"/>
-      <arg name="world_name" value="$(find vehicle_simulator)/world/$(arg world_name).world"/>
-    </include>
+from ament_index_python.packages import get_package_share_directory
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, TimerAction
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch_ros.actions import Node
+from launch.substitutions import Command, LaunchConfiguration
 
-    <param name="rgbd_camera_description" command="$(find xacro)/xacro --inorder '$(find vehicle_simulator)/urdf/rgbd_camera.urdf.xacro'" />
-    <node pkg="gazebo_ros" type="spawn_model" name="spawn_rgbd_camera" args="-urdf -param /rgbd_camera_description -model rgbd_camera"/>
-    
-    <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find vehicle_simulator)/urdf/robot.urdf.xacro'" />
-    <node pkg="gazebo_ros" type="spawn_model" name="spawn_robot" args="-urdf -param /robot_description -model robot"/>
-  </group>
+def declare_world_action(context, world_name):
+  world_name_str = str(world_name.perform(context))
+  declare_world = DeclareLaunchArgument('world', default_value=[os.path.join(get_package_share_directory('vehicle_simulator'), 'world', world_name_str + '.world')], description='')
+  return [declare_world]
 
-  <node pkg="vehicle_simulator" type="vehicleSimulator" name="vehicleSimulator" output="screen">
-    <param name="realtimeFactor" value="$(arg realtime_factor)" />
-    <param name="windCoeff" type="double" value="0.05" />
-    <param name="maxRollPitchRate" type="double" value="20.0" />
-    <param name="rollPitchSmoothRate" type="double" value="0.1" />
-    <param name="sensorPitch" value="$(arg sensorPitch)" />
-    <param name="vehicleX" value="$(arg vehicleX)" />
-    <param name="vehicleY" value="$(arg vehicleY)" />
-    <param name="vehicleZ" value="$(arg vehicleZ)" />
-    <param name="vehicleYaw" value="$(arg vehicleYaw)" />
-  </node>
+def generate_launch_description():
+  sensorPitch = LaunchConfiguration('sensorPitch')
+  vehicleX = LaunchConfiguration('vehicleX')
+  vehicleY = LaunchConfiguration('vehicleY')
+  vehicleZ = LaunchConfiguration('vehicleZ')
+  vehicleYaw = LaunchConfiguration('vehicleYaw')
+  paused = LaunchConfiguration('paused')
+  use_sim_time = LaunchConfiguration('use_sim_time')
+  realtime_factor = LaunchConfiguration('realtime_factor')
+  gui = LaunchConfiguration('gui')
+  record = LaunchConfiguration('record')
+  debug = LaunchConfiguration('debug')
+  verbose = LaunchConfiguration('verbose')
+  world_name = LaunchConfiguration('world_name')
+  use_gazebo = LaunchConfiguration('use_gazebo')
 
-</launch>
+  declare_sensorPitch = DeclareLaunchArgument('sensorPitch', default_value='0.0', description='')
+  declare_vehicleX = DeclareLaunchArgument('vehicleX', default_value='0.0', description='')
+  declare_vehicleY = DeclareLaunchArgument('vehicleY', default_value='0.0', description='')
+  declare_vehicleZ = DeclareLaunchArgument('vehicleZ', default_value='1.0', description='')
+  declare_vehicleYaw = DeclareLaunchArgument('vehicleYaw', default_value='0.0', description='')
+  declare_paused = DeclareLaunchArgument('paused', default_value='false', description='')
+  declare_use_sim_time = DeclareLaunchArgument('use_sim_time', default_value='true', description='')
+  declare_realtime_factor = DeclareLaunchArgument('realtime_factor', default_value='1.0', description='')
+  declare_gui = DeclareLaunchArgument('gui', default_value='false', description='')
+  declare_record = DeclareLaunchArgument('record', default_value='false', description='')
+  declare_debug = DeclareLaunchArgument('debug', default_value='false', description='')
+  declare_verbose = DeclareLaunchArgument('verbose', default_value='false', description='')
+  declare_world_name = DeclareLaunchArgument('world_name', default_value='office', description='')
+  declare_use_gazebo = DeclareLaunchArgument('use_gazebo', default_value='true', description='')
+  
+  robot_xacro = os.path.join(get_package_share_directory('vehicle_simulator'), 'urdf', 'robot.urdf.xacro')
+  robot_description = Command(['xacro',' ', robot_xacro])
+  start_robot_state_publisher = Node(
+    package='robot_state_publisher',
+    executable='robot_state_publisher',
+    name='robot_state_publisher',
+    output='screen',
+    parameters=[{
+      'use_sim_time': use_sim_time,
+      'robot_description': robot_description
+    }]
+  )
+
+  spawn_robot = Node(
+    package='gazebo_ros', 
+    executable='spawn_entity.py',
+    arguments=[
+      '-entity', 'robot',
+      '-topic', 'robot_description',
+    ],
+    output='screen',
+  )
+
+  # robot_xacro = os.path.join(get_package_share_directory('vehicle_simulator'), 'urdf', 'robot.sdf')
+  # spawn_robot = Node(
+  #   package='gazebo_ros', 
+  #   executable='spawn_entity.py',
+  #   arguments=[
+  #     '-file', robot_xacro,
+  #     '-entity', 'robot'
+  #   ],
+  #   output='screen',
+  # )
+
+  camera_xacro = os.path.join(get_package_share_directory('vehicle_simulator'), 'urdf', 'rgbd_camera.urdf.xacro')
+  spawn_camera = Node(
+    package='gazebo_ros', 
+    executable='spawn_entity.py',
+    arguments=[
+      '-file', camera_xacro,
+      '-entity', 'rgbd_camera'
+      ],
+      output='screen'
+  )
+
+  start_gazebo = IncludeLaunchDescription(
+    PythonLaunchDescriptionSource(os.path.join(
+      get_package_share_directory('gazebo_ros'), 'launch', 'gazebo.launch.py'))
+  )
+
+  start_joy = IncludeLaunchDescription(
+    PythonLaunchDescriptionSource(os.path.join(
+      get_package_share_directory('joy'), 'launch', 'joy-launch.py'))
+  )
+
+  start_vehicle_simulator = Node(
+    package='vehicle_simulator', 
+    executable='vehicleSimulator',
+    parameters=[
+      {
+        'realtimeFactor': realtime_factor,
+        'windCoeff': 0.05,
+        'maxRollPitchRate': 20.0,
+        'rollPitchSmoothRate': 0.1,
+        'sensorPitch': sensorPitch,
+        'vehicleX': vehicleX,
+        'vehicleY': vehicleY,
+        'vehicleZ': vehicleZ,
+        'vehicleYaw': vehicleYaw,
+      }
+      ],
+      output='screen'
+  )
+
+  delayed_start_vehicle_simulator = TimerAction(
+    period=5.0,
+    actions=[
+      start_vehicle_simulator
+    ]
+  )
+
+  ld = LaunchDescription()
+
+  # Add the actions
+  ld.add_action(declare_sensorPitch)
+  ld.add_action(declare_vehicleX)
+  ld.add_action(declare_vehicleY)
+  ld.add_action(declare_vehicleZ)
+  ld.add_action(declare_vehicleYaw)
+  ld.add_action(declare_paused)
+  ld.add_action(declare_use_sim_time)
+  ld.add_action(declare_realtime_factor)
+  ld.add_action(declare_gui)
+  ld.add_action(declare_record)
+  ld.add_action(declare_debug)
+  ld.add_action(declare_verbose)
+  ld.add_action(declare_world_name)
+  ld.add_action(declare_use_gazebo)
+  ld.add_action(OpaqueFunction(function=declare_world_action, args=[world_name]))
+
+  ld.add_action(start_gazebo)
+  ld.add_action(start_robot_state_publisher)
+  ld.add_action(spawn_robot)
+  ld.add_action(spawn_camera)
+  ld.add_action(start_joy)
+  ld.add_action(delayed_start_vehicle_simulator)
+
+  return ld

@@ -37,7 +37,7 @@
           <far>30.0</far>
         </clip>
       </camera>
-      <plugin name="rgbd_camera_controller" filename="libgazebo_ros_depth_camera.so">
+      <plugin name="depth_camera_controller" filename="libgazebo_ros_camera.so">
         <alwaysOn>true</alwaysOn>
           <baseline>0.2</baseline>
           <cameraName>rgbd_camera</cameraName>
@@ -45,7 +45,7 @@
           <cameraInfoTopicName>/rgbd_camera/color/camera_info</cameraInfoTopicName>
           <depthImageTopicName>/rgbd_camera/depth/image</depthImageTopicName>
           <depthImageCameraInfoTopicName>/rgbd_camera/depth/camera_info</depthImageCameraInfoTopicName>
-          <pointCloudTopicName>/rgbd_camera/depth/points</pointCloudTopicName>
+          <pointCloudTopicName>/rgbd_camera/points</pointCloudTopicName>
           <frameName>rgbd_camera</frameName>
           <pointCloudCutoff>0.1</pointCloudCutoff>
           <pointCloudCutoffMax>6.0</pointCloudCutoffMax>

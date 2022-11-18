@@ -8,7 +8,7 @@
       <uri>model://tunnel</uri>
     </include>
     <plugin name="ros_interface_plugin" filename="librotors_gazebo_ros_interface_plugin.so"/>
-
+    <plugin name="gazebo_ros_state" filename="libgazebo_ros_state.so"/>
     <spherical_coordinates>
       <surface_model>EARTH_WGS84</surface_model>
       <latitude_deg>47.3667</latitude_deg>
