@@ -1,46 +1,119 @@
-<launch>
+import os
 
-  <arg name="stateEstimationTopic" default="/state_estimation"/>
-  <arg name="depthCamPitchOffset" default="0"/>
-  <arg name="trackingCamBackward" default="false"/>
-  <arg name="trackingCamXOffset" default="0"/>
-  <arg name="trackingCamYOffset" default="0"/>
-  <arg name="trackingCamZOffset" default="0"/>
-  <arg name="trackingCamScale" default="1.0"/>
-  <arg name="vehicleX" default="0"/>
-  <arg name="vehicleY" default="0"/>
-  <arg name="vehicleZ" default="1.0"/>
-  <arg name="vehicleYaw" default="0"/>
-  <arg name="use_gazebo" default="true"/>
-  <arg name="gazebo_gui" default="true"/>
-  <arg name="world_name" default="office_simple"/>
-  <arg name="realtime_factor" default="1.0"/>
+from ament_index_python.packages import get_package_share_directory
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction, OpaqueFunction
+from launch.launch_description_sources import PythonLaunchDescriptionSource, FrontendLaunchDescriptionSource
+from launch_ros.actions import Node
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 
-  <include file="$(find-pkg-prefix ps3joy)/launch/ps3.launch" />
+def generate_launch_description():
+  stateEstimationTopic = LaunchConfiguration('stateEstimationTopic')
+  depthCamPitchOffset = LaunchConfiguration('depthCamPitchOffset')
+  trackingCamBackward = LaunchConfiguration('trackingCamBackward')
+  trackingCamXOffset = LaunchConfiguration('trackingCamXOffset')
+  trackingCamYOffset = LaunchConfiguration('trackingCamYOffset')
+  trackingCamZOffset = LaunchConfiguration('trackingCamZOffset')
+  trackingCamScale = LaunchConfiguration('trackingCamScale')
+  vehicleX = LaunchConfiguration('vehicleX')
+  vehicleY = LaunchConfiguration('vehicleY')
+  vehicleZ = LaunchConfiguration('vehicleZ')
+  vehicleYaw = LaunchConfiguration('vehicleYaw')
+  use_gazebo = LaunchConfiguration('use_gazebo')
+  gazebo_gui = LaunchConfiguration('gazebo_gui')
+  world_name = LaunchConfiguration('world_name')
+  realtime_factor = LaunchConfiguration('realtime_factor')
 
-  <include file="$(find-pkg-prefix control_tuner)/launch/control_tuner.launch" >
-    <arg name="stateEstimationTopic" value="$(var stateEstimationTopic)" />
-    <arg name="trackingCamBackward" value="$(var trackingCamBackward)" />
-    <arg name="trackingCamXOffset" value="$(var trackingCamXOffset)" />
-    <arg name="trackingCamYOffset" value="$(var trackingCamYOffset)" />
-    <arg name="trackingCamZOffset" value="$(var trackingCamZOffset)" />
-    <arg name="trackingCamScale" value="$(var trackingCamScale)" />
-  </include>
+  declare_stateEstimationTopic = DeclareLaunchArgument('stateEstimationTopic', default_value='/state_estimation', description='')
+  declare_depthCamPitchOffset = DeclareLaunchArgument('depthCamPitchOffset', default_value='0.0', description='')
+  declare_trackingCamBackward = DeclareLaunchArgument('trackingCamBackward', default_value='false', description='')
+  declare_trackingCamXOffset = DeclareLaunchArgument('trackingCamXOffset', default_value='0.0', description='')
+  declare_trackingCamYOffset = DeclareLaunchArgument('trackingCamYOffset', default_value='0.0', description='')
+  declare_trackingCamZOffset = DeclareLaunchArgument('trackingCamZOffset', default_value='0.0', description='')
+  declare_trackingCamScale = DeclareLaunchArgument('trackingCamScale', default_value='1.0', description='')
+  declare_vehicleX = DeclareLaunchArgument('vehicleX', default_value='0.0', description='')
+  declare_vehicleY = DeclareLaunchArgument('vehicleY', default_value='0.0', description='')
+  declare_vehicleZ = DeclareLaunchArgument('vehicleZ', default_value='1.0', description='')
+  declare_vehicleYaw = DeclareLaunchArgument('vehicleYaw', default_value='0.0', description='')
+  declare_use_gazebo = DeclareLaunchArgument('use_gazebo', default_value='true', description='')
+  declare_gazebo_gui = DeclareLaunchArgument('gazebo_gui', default_value='true', description='')
+  declare_world_name = DeclareLaunchArgument('world_name', default_value='office', description='')
+  declare_realtime_factor = DeclareLaunchArgument('realtime_factor', default_value='1.0', description='')
 
-  <include file="$(find-pkg-prefix vehicle_simulator)/launch/vehicle_simulator.launch" >
-    <arg name="sensorPitch" value="$(var depthCamPitchOffset)" />
-    <arg name="vehicleX" value="$(var vehicleX)" />
-    <arg name="vehicleY" value="$(var vehicleY)" />
-    <arg name="vehicleZ" value="$(var vehicleZ)" />
-    <arg name="vehicleYaw" value="$(var vehicleYaw)" />
-    <arg name="use_gazebo" value="$(var use_gazebo)" />
-    <arg name="gui" value="$(var gazebo_gui)" />
-    <arg name="world_name" value="$(var world_name)" />
-    <arg name="realtime_factor" value="$(var realtime_factor)" />
-  </include>
+  start_control_tuner = IncludeLaunchDescription(
+    PythonLaunchDescriptionSource(os.path.join(
+      get_package_share_directory('control_tuner'), 'launch', 'control_tuner.launch')
+    ),
+    launch_arguments={
+      'stateEstimationTopic': stateEstimationTopic,
+      'trackingCamBackward': trackingCamBackward,
+      'trackingCamXOffset': trackingCamXOffset,
+      'trackingCamYOffset': trackingCamYOffset,
+      'trackingCamZOffset': trackingCamZOffset,
+      'trackingCamScale': trackingCamScale,
+    }.items()
+  )
 
-  <node launch-prefix="nice" pkg="rviz" type="rviz" name="rvizAA" args="-d $(find-pkg-prefix vehicle_simulator)/rviz/vehicle_simulator_gazebo.rviz" respawn="true"/>
+  start_vehicle_simulator = IncludeLaunchDescription(
+    PythonLaunchDescriptionSource(os.path.join(
+      get_package_share_directory('vehicle_simulator'), 'launch', 'vehicle_simulator.launch')
+    ),
+    launch_arguments={
+      'sensorPitch': depthCamPitchOffset,
+      'vehicleX': vehicleX,
+      'vehicleY': vehicleY,
+      'vehicleZ': vehicleZ,
+      'vehicleYaw': vehicleYaw,
+      'use_gazebo': use_gazebo,
+      'gui': gazebo_gui,
+      'world_name': world_name,
+      'realtime_factor': realtime_factor
+    }.items()
+  )
 
-  <node pkg="tf" type="static_transform_publisher" name="vehicleTransPublisher" args="0 0 0 -1.5707963 0 -1.5707963 /vehicle /rgbd_camera 1000"/>
+  start_static_tf_publisher = Node(
+    package="tf2_ros",
+    executable="static_transform_publisher",
+    output="screen" ,
+    arguments=["0.0", "0.0", "0.0", "-1.5707963", "0.0", "-1.5707963", "vehicle", "rgbd_camera"]
+  )
 
-</launch>
+  rviz_config_file = os.path.join(get_package_share_directory('vehicle_simulator'), 'rviz', 'vehicle_simulator_gazebo.rviz')
+  start_rviz = Node(
+    package='rviz2',
+    executable='rviz2',
+    arguments=['-d', rviz_config_file],
+    output='screen'
+  )
+
+  delayed_start_rviz = TimerAction(
+    period=8.0,
+    actions=[
+      start_rviz
+    ]
+  )
+
+  ld = LaunchDescription()
+
+  # Add the actions
+  ld.add_action(declare_stateEstimationTopic)
+  ld.add_action(declare_depthCamPitchOffset)
+  ld.add_action(declare_trackingCamBackward)
+  ld.add_action(declare_trackingCamXOffset)
+  ld.add_action(declare_trackingCamYOffset)
+  ld.add_action(declare_trackingCamZOffset)
+  ld.add_action(declare_trackingCamScale)
+  ld.add_action(declare_vehicleX)
+  ld.add_action(declare_vehicleY)
+  ld.add_action(declare_vehicleZ)
+  ld.add_action(declare_vehicleYaw)
+  ld.add_action(declare_use_gazebo)
+  ld.add_action(declare_gazebo_gui)
+  ld.add_action(declare_world_name)
+  ld.add_action(declare_realtime_factor)
+
+  ld.add_action(start_vehicle_simulator)
+  ld.add_action(start_static_tf_publisher)
+  ld.add_action(delayed_start_rviz)
+
+  return ld
