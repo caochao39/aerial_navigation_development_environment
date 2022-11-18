@@ -89,7 +89,7 @@
         <enable_wind>0</enable_wind>
       </link>
     </model>
-    <gravity>0 0 -9.8</gravity>
+    <gravity>0 0 0</gravity>
     <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
     <atmosphere type='adiabatic'/>
     <model name='desk_drawer'>

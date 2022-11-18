@@ -91,6 +91,5 @@ void WaypointTool::onPoseSet(double x, double y, double theta)
 }
 }
 
-// PLUGINLIB_EXPORT_CLASS(rviz::WaypointTool, rviz::Tool)
 #include <pluginlib/class_list_macros.hpp> 
 PLUGINLIB_EXPORT_CLASS(waypoint_rviz_plugin::WaypointTool, rviz_common::Tool)

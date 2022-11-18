@@ -1,7 +1,3 @@
-## BEGIN_TUTORIAL
-## This CMakeLists.txt file for rviz_plugin_tutorials builds the
-## TeleopPanel, ImuDisplay, and PlantFlagTool tutorials.
-
 cmake_minimum_required(VERSION 3.8)
 project(waypoint_rviz_plugin)
 
@@ -30,7 +26,6 @@ find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 
-## This setting causes Qt's "MOC" generation to happen automatically.
 set(CMAKE_AUTOMOC ON)
 
 set(HDR_FILES
@@ -41,8 +36,6 @@ foreach(header "${HDR_FILES}")
   qt5_wrap_cpp(rviz_plugins_moc_files "${header}")
 endforeach()
 
-## Here we specify the list of source files.
-## The generated MOC files are included automatically as headers.
 set(HDR_FILES
     include/waypoint_tool.hpp
 )
@@ -77,11 +70,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   ${pluginlib}
 )
 
-
-## Here we export the plugins and meshes so they can be found by RViz at runtime.
 pluginlib_export_plugin_description_file(rviz_common plugin_description.xml)
-
-## END_TUTORIAL
 
 ament_export_dependencies(
   geometry_msgs
