@@ -1,18 +1,57 @@
-<launch>
-  <node pkg="nodelet" type="nodelet" name="standalone_nodelet" args="manager"/>
+import os
 
-  <node pkg="airsim_utils" type="depth_image_filter" name="depth_image_filter" output="screen">
-    <param name="maxDepthValue" value="100.0"/>
-    <param name="minDepthValue" value="0.2"/>
-  </node>
+from ament_index_python.packages import get_package_share_directory
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction, OpaqueFunction
+from launch.launch_description_sources import PythonLaunchDescriptionSource, FrontendLaunchDescriptionSource
+from launch_ros.actions import Node, ComposableNodeContainer
+from launch_ros.descriptions import ComposableNode 
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 
-  <node pkg="nodelet" type="nodelet" name="depth_image_proc" args="load depth_image_proc/point_cloud_xyz_radial standalone_nodelet" output="screen">
-    <remap from="image_raw" to="/airsim_node/drone0/cam/DepthPerspective"/>
-    <remap from="/airsim_node/drone0/cam/camera_info" to="/airsim_node/drone0/cam/DepthPerspective/camera_info"/>
-    <param name="queue_size" type="int" value="1"/>
-    <remap from="/points" to="/airsim_node/drone0/cam/DepthCloud"/>
-  </node>
+def generate_launch_description():
 
-  <node pkg="tf" type="static_transform_publisher" name="world_enu_to_map_pub" args="0 0 0 1.57 0 0 world_enu map 100"/>
+  start_depth_image_filter = Node(
+    package='airsim_utils',
+    executable='depth_image_filter',
+    parameters=[
+      {
+        'maxDepthValue': 100.0,
+        'minDepthValue': 0.2,
+      }
+      ],
+    output='screen'
+  )
 
-</launch>
+  start_point_cloud_xyz_radial_node = ComposableNodeContainer(
+    name='container',
+    namespace='',
+    package='rclcpp_components',
+    executable='component_container',
+    composable_node_descriptions=[
+        # Driver itself
+        ComposableNode(
+            package='depth_image_proc',
+            plugin='depth_image_proc::PointCloudXyzRadialNode',
+            name='point_cloud_xyz_radial_node',
+            remappings=[('image_raw', '/airsim_node/drone0/cam/DepthPerspective'),
+                        ('/airsim_node/drone0/cam/camera_info', '/airsim_node/drone0/cam/DepthPerspective/camera_info'),
+                        ('/points', '/airsim_node/drone0/cam/DepthCloud')]
+        ),
+    ],
+    output='screen',
+  )
+
+  start_static_tf_publisher = Node(
+    package="tf2_ros",
+    executable="static_transform_publisher",
+    output="screen" ,
+    arguments=["0.0", "0.0", "0.0", "1.5707963", "0.0", "0.0", "world_enu", "map"]
+  )
+
+  ld = LaunchDescription()
+  
+  ld.add_action(start_depth_image_filter)
+  ld.add_action(start_point_cloud_xyz_radial_node)
+  ld.add_action(start_static_tf_publisher)
+
+  return ld
