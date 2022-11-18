@@ -1,0 +1,1 @@
+KERNEL=="event[0-9]*", SUBSYSTEM=="input", ATTRS{name}=="Logitech Gamepad F710", ACTION=="add", SYMLINK+="logitech_f710", MODE="666"

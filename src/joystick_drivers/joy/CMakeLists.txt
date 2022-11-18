@@ -1,39 +1,67 @@
 cmake_minimum_required(VERSION 3.5)
+
 project(joy)
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-# Load catkin and all dependencies required for this package
-set(CATKIN_DEPS roscpp diagnostic_updater sensor_msgs roslint)
-find_package(catkin REQUIRED ${CATKIN_DEPS})
-
-roslint_cpp()
-
-catkin_package(DEPENDS sensor_msgs)
-
-# Look for <linux/joystick.h>
-include(CheckIncludeFiles)
-check_include_files(linux/joystick.h HAVE_LINUX_JOYSTICK_H)
-
-if(CATKIN_ENABLE_TESTING)
-  roslint_add_test()
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-if(HAVE_LINUX_JOYSTICK_H)
-  include_directories(msg/cpp ${catkin_INCLUDE_DIRS})
-  add_executable(joy_node src/joy_node.cpp)
-  target_link_libraries(joy_node ${catkin_LIBRARIES})
+find_package(ament_cmake_ros REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclcpp_components REQUIRED)
+find_package(sdl2_vendor REQUIRED)
+find_package(sdl2_custom REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
-# Install targets
-  install(TARGETS joy_node
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-else()
-  message("Warning: no <linux/joystick.h>; won't build joy node")
+add_library(joy SHARED src/joy.cpp)
+target_include_directories(joy PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
+target_link_libraries(joy PUBLIC
+  rclcpp::rclcpp
+  ${sensor_msgs_TARGETS}
+  SDL2::SDL2)
+target_link_libraries(joy PRIVATE
+  rclcpp_components::component)
+
+install(TARGETS joy EXPORT export_joy
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
+rclcpp_components_register_node(joy
+  PLUGIN "joy::Joy"
+  EXECUTABLE joy_node)
+
+add_executable(joy_enumerate_devices
+  src/joy_enumerate_devices.cpp)
+target_link_libraries(joy_enumerate_devices
+  SDL2::SDL2)
+
+install(TARGETS joy_enumerate_devices
+  DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY include/ DESTINATION include/${PROJECT_NAME})
+
+install(DIRECTORY config launch
+  DESTINATION share/${PROJECT_NAME})
+
+ament_export_targets(export_joy)
+ament_export_dependencies(
+  "rclcpp"
+  "sensor_msgs"
+  "sdl2_vendor"
+  "sdl2_custom")
+
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  set(ament_cmake_copyright_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
 endif()
 
-install(DIRECTORY migration_rules scripts config launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-  USE_SOURCE_PERMISSIONS)
+ament_package()
