@@ -63,26 +63,6 @@ def generate_launch_description():
   declare_config = DeclareLaunchArgument('config', default_value='indoor', description='')
   declare_realtime_factor = DeclareLaunchArgument('realtime_factor', default_value='1.0', description='')
 
-  # start_local_planner = IncludeLaunchDescription(
-  #   FrontendLaunchDescriptionSource(os.path.join(
-  #     get_package_share_directory('local_planner'), 'launch', 'local_planner.launch')
-  #   ),
-  #   launch_arguments={
-  #     'stateEstimationTopic': stateEstimationTopic,
-  #     'depthCloudTopic': depthCloudTopic,
-  #     'depthCloudDelay': depthCloudDelay,
-  #     'depthCamPitchOffset': depthCamPitchOffset,
-  #     'depthCamXOffset': depthCamXOffset,
-  #     'depthCamYOffset': depthCamYOffset,
-  #     'depthCamZOffset': depthCamZOffset,
-  #     'trackingCamBackward': trackingCamBackward,
-  #     'trackingCamXOffset': trackingCamXOffset,
-  #     'trackingCamYOffset': trackingCamYOffset,
-  #     'trackingCamZOffset': trackingCamZOffset,
-  #     'trackingCamScale': trackingCamScale,
-  #   }.items()
-  # )
-
   start_vehicle_simulator = IncludeLaunchDescription(
     PythonLaunchDescriptionSource(os.path.join(
       get_package_share_directory('vehicle_simulator'), 'launch', 'vehicle_simulator.launch')

@@ -66,17 +66,6 @@ def generate_launch_description():
     output='screen',
   )
 
-  # robot_xacro = os.path.join(get_package_share_directory('vehicle_simulator'), 'urdf', 'robot.sdf')
-  # spawn_robot = Node(
-  #   package='gazebo_ros', 
-  #   executable='spawn_entity.py',
-  #   arguments=[
-  #     '-file', robot_xacro,
-  #     '-entity', 'robot'
-  #   ],
-  #   output='screen',
-  # )
-
   camera_xacro = os.path.join(get_package_share_directory('vehicle_simulator'), 'urdf', 'rgbd_camera.urdf.xacro')
   spawn_camera = Node(
     package='gazebo_ros', 

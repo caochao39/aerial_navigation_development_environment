@@ -2,23 +2,10 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-// #include <ros/ros.h>
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/time.hpp"
 #include "rclcpp/clock.hpp"
 #include "builtin_interfaces/msg/time.hpp"
-
-// #include <message_filters/subscriber.h>
-// #include <message_filters/synchronizer.h>
-// #include <message_filters/sync_policies/approximate_time.h>
-
-// #include <std_msgs/Float32.h>
-// #include <nav_msgs/Path.h>
-// #include <nav_msgs/Odometry.h>
-// #include <geometry_msgs/PointStamped.h>
-// #include <sensor_msgs/PointCloud2.h>
-// #include <sensor_msgs/Joy.h>
-// #include <visualization_msgs/Marker.h>
 
 #include <std_msgs/msg/float32.hpp>
 #include <nav_msgs/msg/path.hpp>
@@ -29,12 +16,6 @@
 #include <sensor_msgs/msg/joy.hpp>
 #include <visualization_msgs/msg/marker.hpp>
 
-// #include <std_msgs/msg/float32_multi_array.hpp>
-// #include <std_msgs/msg/int8.hpp>
-// #include <sensor_msgs/msg/imu.h>
-
-// #include <tf/transform_datatypes.h>
-// #include <tf/transform_broadcaster.h>
 #include "tf2/transform_datatypes.h"
 #include "tf2_ros/transform_broadcaster.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
@@ -163,14 +144,6 @@ float vehicleAngRateX = 0;
 float vehicleAngRateY = 0;
 float vehicleAngRateZ = 0;
 
-// visualization_msgs::Marker trackMarker;
-// nav_msgs::Odometry trackOdom;
-// nav_msgs::Path trackPath, trackPath2, trackPathShow;
-// geometry_msgs::TwistStamped control_cmd;
-// std_msgs::Float32 autoMode;
-// geometry_msgs::PointStamped waypoint;
-// tf::StampedTransform odomTrans;
-
 rclcpp::Node::SharedPtr nh;
 
 visualization_msgs::msg::Marker trackMarker;
@@ -180,14 +153,6 @@ geometry_msgs::msg::TwistStamped control_cmd;
 std_msgs::msg::Float32 autoMode;
 geometry_msgs::msg::PointStamped waypoint;
 tf2::Stamped<tf2::Transform> odomTrans;
-
-// ros::Publisher *pubMarkerPointer;
-// ros::Publisher *pubOdometryPointer;
-// ros::Publisher *pubPathPointer;
-// ros::Publisher *pubControlPointer;
-// ros::Publisher *pubAutoModePointer;
-// ros::Publisher *pubWaypointPointer;
-// tf::TransformBroadcaster *tfBroadcasterPointer;
 
 rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr pubMarkerPointer;
 rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pubOdometryPointer;
@@ -200,7 +165,6 @@ std::unique_ptr<tf2_ros::TransformBroadcaster> tfBroadcasterPointer;
 FILE *desiredTrajFilePtr = NULL;
 FILE *executedTrajFilePtr = NULL;
 
-// void stateEstimationHandler(const nav_msgs::Odometry::ConstPtr& odom)
 void stateEstimationHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom)
 {
   if (stateInitDelay >= 0 && shiftGoalAtStart) {
@@ -220,12 +184,8 @@ void stateEstimationHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom)
     pubSkipCount = pubSkipNum;
   }
 
-  // double odomTime = odom->header.stamp.toSec();
   double odomTime = rclcpp::Time(odom->header.stamp).seconds();
 
-  // double roll, pitch, yaw;
-  // geometry_msgs::Quaternion geoQuat = odom->pose.pose.orientation;
-  // tf::Matrix3x3(tf::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w)).getRPY(roll, pitch, yaw);
   double roll, pitch, yaw;
   geometry_msgs::msg::Quaternion geoQuat = odom->pose.pose.orientation;
   tf2::Matrix3x3(tf2::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w)).getRPY(roll, pitch, yaw);
@@ -582,8 +542,6 @@ void stateEstimationHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom)
   trackMarker.header.frame_id = "map";
   trackMarker.ns = "track_point";
   trackMarker.id = 0;
-  // trackMarker.type = visualization_msgs::Marker::SPHERE;
-  // trackMarker.action = visualization_msgs::Marker::ADD;
   trackMarker.type = visualization_msgs::msg::Marker::SPHERE;
   trackMarker.action = visualization_msgs::msg::Marker::ADD;
   trackMarker.scale.x = 0.2;
@@ -596,10 +554,8 @@ void stateEstimationHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom)
   trackMarker.pose.position.z = trackZ;
   pubMarkerPointer->publish(trackMarker);
 
-  // geoQuat = tf::createQuaternionMsgFromRollPitchYaw(0, trackPitch, trackYaw);
   tf2::Quaternion quat_tf;
   quat_tf.setRPY(0, trackPitch, trackYaw);
-  // geometry_msgs::msg::Quaternion geoQuat;
   tf2::convert(quat_tf, geoQuat);
 
   trackOdom.header.stamp = odom->header.stamp;
@@ -617,12 +573,6 @@ void stateEstimationHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom)
   trackOdom.twist.twist.linear.z = vehicleZ;
   pubOdometryPointer->publish(trackOdom);
 
-  // odomTrans.stamp_ = odom->header.stamp;
-  // odomTrans.frame_id_ = "map";
-  // odomTrans.child_frame_id_ = "track_point";
-  // odomTrans.setRotation(tf::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w));
-  // odomTrans.setOrigin(tf::Vector3(trackX, trackY, trackZ));
-  // tfBroadcasterPointer->sendTransform(odomTrans);
   odomTrans.frame_id_ = "map";
   odomTrans.setRotation(tf2::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w));
   odomTrans.setOrigin(tf2::Vector3(trackX, trackY, trackZ));
@@ -633,10 +583,8 @@ void stateEstimationHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom)
   tfBroadcasterPointer->sendTransform(transformTfGeom);
 }
 
-// void pathHandler(const nav_msgs::Path::ConstPtr& path)
 void pathHandler(const nav_msgs::msg::Path::ConstSharedPtr path)
 {
-  // double pathTime = path->header.stamp.toSec();
   double pathTime = rclcpp::Time(path->header.stamp).seconds();
 
   int pathLength = path->poses.size();
@@ -724,10 +672,8 @@ void pathHandler(const nav_msgs::msg::Path::ConstSharedPtr path)
   pubPathPointer->publish(trackPathShow);
 }
 
-// void joystickHandler(const sensor_msgs::Joy::ConstPtr& joy)
 void joystickHandler(const sensor_msgs::msg::Joy::ConstSharedPtr joy)
 {
-  // joyTime = ros::Time::now().toSec();
   joyTime = nh->now().seconds();
 
   if (joy->axes[2] >= -0.1 || joy->axes[5] < -0.1) {
@@ -766,17 +712,14 @@ void joystickHandler(const sensor_msgs::msg::Joy::ConstSharedPtr joy)
   else if (desiredSpeed > maxSpeed) desiredSpeed = maxSpeed;
 }
 void goalHandler(const geometry_msgs::msg::PointStamped::ConstSharedPtr goal)
-// void goalHandler(const geometry_msgs::PointStamped::ConstPtr& goal)
 {
   goalX = goal->point.x;
   goalY = goal->point.y;
   goalZ = goal->point.z;
 }
 
-// void speedHandler(const std_msgs::Float32::ConstPtr& speed)
 void speedHandler(const std_msgs::msg::Float32::ConstSharedPtr speed)
 {
-  // double speedTime = ros::Time::now().toSec();
   double speedTime = nh->now().seconds();
 
   if (speedTime - joyTime > joyToSpeedDelay) {
@@ -788,69 +731,9 @@ void speedHandler(const std_msgs::msg::Float32::ConstSharedPtr speed)
 
 int main(int argc, char** argv)
 {
-  // ros::init(argc, argv, "pathFollower");
-  // ros::NodeHandle nh;
-  // ros::NodeHandle nhPrivate = ros::NodeHandle("~");
   rclcpp::init(argc, argv);
   nh = rclcpp::Node::make_shared("pathFollower");
-
-  // nhPrivate.getParam("stateEstimationTopic", stateEstimationTopic);
-  // nhPrivate.getParam("desiredTrajFile", desiredTrajFile);
-  // nhPrivate.getParam("executedTrajFile", executedTrajFile);
-  // nhPrivate.getParam("saveTrajectory", saveTrajectory);
-  // nhPrivate.getParam("saveTrajInverval", saveTrajInverval);
-  // nhPrivate.getParam("waypointTest", waypointTest);
-  // nhPrivate.getParam("waypointNum", waypointNum);
-  // nhPrivate.getParam("waypointInterval", waypointInterval);
-  // nhPrivate.getParam("waypointYaw", waypointYaw);
-  // nhPrivate.getParam("waypointZ", waypointZ);
-  // nhPrivate.getParam("autonomyMode", autonomyMode);
-  // nhPrivate.getParam("pubSkipNum", pubSkipNum);
-  // nhPrivate.getParam("trackingCamBackward", trackingCamBackward);
-  // nhPrivate.getParam("trackingCamXOffset", trackingCamXOffset);
-  // nhPrivate.getParam("trackingCamYOffset", trackingCamYOffset);
-  // nhPrivate.getParam("trackingCamZOffset", trackingCamZOffset);
-  // nhPrivate.getParam("trackingCamScale", trackingCamScale);
-  // nhPrivate.getParam("trackPitch", trackPitch);
-  // nhPrivate.getParam("lookAheadScale", lookAheadScale);
-  // nhPrivate.getParam("minLookAheadDis", minLookAheadDis);
-  // nhPrivate.getParam("minSpeed", minSpeed);
-  // nhPrivate.getParam("maxSpeed", maxSpeed);
-  // nhPrivate.getParam("accXYGain", accXYGain);
-  // nhPrivate.getParam("velXYGain", velXYGain);
-  // nhPrivate.getParam("posZBoostScale", posZBoostScale);
-  // nhPrivate.getParam("posXYGain", posXYGain);
-  // nhPrivate.getParam("stopVelXYGain", stopVelXYGain);
-  // nhPrivate.getParam("stopPosXYGain", stopPosXYGain);
-  // nhPrivate.getParam("smoothIncrSpeed", smoothIncrSpeed);
-  // nhPrivate.getParam("maxRollPitch", maxRollPitch);
-  // nhPrivate.getParam("yawRateScale", yawRateScale);
-  // nhPrivate.getParam("yawGain", yawGain);
-  // nhPrivate.getParam("yawBoostScale", yawBoostScale);
-  // nhPrivate.getParam("maxRateByYaw", maxRateByYaw);
-  // nhPrivate.getParam("velZScale", velZScale);
-  // nhPrivate.getParam("posZGain", posZGain);
-  // nhPrivate.getParam("maxVelByPosZ", maxVelByPosZ);
-  // nhPrivate.getParam("manualSpeedXY", manualSpeedXY);
-  // nhPrivate.getParam("manualSpeedZ", manualSpeedZ);
-  // nhPrivate.getParam("manualYawRate", manualYawRate);
-  // nhPrivate.getParam("slowTurnRate", slowTurnRate);
-  // nhPrivate.getParam("minSlowTurnCurv", minSlowTurnCurv);
-  // nhPrivate.getParam("minSlowTurnInterval", minSlowTurnInterval);
-  // nhPrivate.getParam("minStopRotInterval", minStopRotInterval);
-  // nhPrivate.getParam("stopRotDelayTime", stopRotDelayTime);
-  // nhPrivate.getParam("stopRotDis", stopRotDis);
-  // nhPrivate.getParam("stopRotYaw1", stopRotYaw1);
-  // nhPrivate.getParam("stopRotYaw2", stopRotYaw2);
-  // nhPrivate.getParam("stopDis", stopDis);
-  // nhPrivate.getParam("slowDis", slowDis);
-  // nhPrivate.getParam("joyDeadband", joyDeadband);
-  // nhPrivate.getParam("joyToSpeedDelay", joyToSpeedDelay);
-  // nhPrivate.getParam("shiftGoalAtStart", shiftGoalAtStart);
-  // nhPrivate.getParam("goalX", goalX);
-  // nhPrivate.getParam("goalY", goalY);
-  // nhPrivate.getParam("goalZ", goalZ);
-
+  
   nh->declare_parameter<std::string>("stateEstimationTopic", stateEstimationTopic);
   nh->declare_parameter<std::string>("desiredTrajFile", desiredTrajFile);
   nh->declare_parameter<std::string>("executedTrajFile", executedTrajFile);
@@ -981,50 +864,30 @@ int main(int argc, char** argv)
     executedTrajFilePtr = fopen(executedTrajFile.c_str(), "w");
   }
 
-  // ros::Subscriber subStateEstimation = nh.subscribe<nav_msgs::Odometry> (stateEstimationTopic, 5, stateEstimationHandler);
   auto subStateEstimation = nh->create_subscription<nav_msgs::msg::Odometry>(stateEstimationTopic, 5, stateEstimationHandler);
 
-  // ros::Subscriber subPath = nh.subscribe<nav_msgs::Path> ("/path", 5, pathHandler);
   auto subPath = nh->create_subscription<nav_msgs::msg::Path>("/path", 5, pathHandler);
 
-  // ros::Subscriber subJoystick = nh.subscribe<sensor_msgs::Joy> ("/joy", 5, joystickHandler);
   auto subJoystick = nh->create_subscription<sensor_msgs::msg::Joy>("/joy", 5, joystickHandler);
 
-  // ros::Subscriber subGoal = nh.subscribe<geometry_msgs::PointStamped> ("/way_point", 5, goalHandler);
   auto subGoal = nh->create_subscription<geometry_msgs::msg::PointStamped>("/way_point", 5, goalHandler);
 
-  // ros::Subscriber subSpeed = nh.subscribe<std_msgs::Float32> ("/speed", 5, speedHandler);
   auto subSpeed = nh->create_subscription<std_msgs::msg::Float32>("/speed", 5, speedHandler);
 
-  // ros::Publisher pubMarker = nh.advertise<visualization_msgs::Marker> ("/track_point_marker", 5);
-  // pubMarkerPointer = &pubMarker;
   pubMarkerPointer = nh->create_publisher<visualization_msgs::msg::Marker>("/track_point_marker", 5);
 
-  // ros::Publisher pubOdometry = nh.advertise<nav_msgs::Odometry> ("/track_point_odom", 5);
-  // pubOdometryPointer = &pubOdometry;
   pubOdometryPointer = nh->create_publisher<nav_msgs::msg::Odometry>("/track_point_odom", 5);
 
-  // ros::Publisher pubPath = nh.advertise<nav_msgs::Path> ("/track_path", 5);
-  // pubPathPointer = &pubPath;
   pubPathPointer = nh->create_publisher<nav_msgs::msg::Path>("/track_path", 5);
 
-  // ros::Publisher pubControl = nh.advertise<geometry_msgs::TwistStamped> ("/attitude_control", 5);
-  // pubControlPointer = &pubControl;
   pubControlPointer = nh->create_publisher<geometry_msgs::msg::TwistStamped>("/attitude_control", 5);
 
-  // ros::Publisher pubAutoMode = nh.advertise<std_msgs::Float32> ("/auto_mode", 5);
-  // pubAutoModePointer = &pubAutoMode;
   pubAutoModePointer = nh->create_publisher<std_msgs::msg::Float32>("/auto_mode", 5);
 
-  // ros::Publisher pubWaypoint = nh.advertise<geometry_msgs::PointStamped> ("/way_point", 5);
-  // pubWaypointPointer = &pubWaypoint;
   pubWaypointPointer = nh->create_publisher<geometry_msgs::msg::PointStamped>("/way_point", 5);
 
-  // tf::TransformBroadcaster tfBroadcaster;
-  // tfBroadcasterPointer = &tfBroadcaster;
   tfBroadcasterPointer = std::make_unique<tf2_ros::TransformBroadcaster>(*nh);
 
-  // ros::spin();
   rclcpp::spin(nh);
 
   if (saveTrajectory) {

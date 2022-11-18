@@ -2,23 +2,11 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-// #include <ros/ros.h>
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/time.hpp"
 #include "rclcpp/clock.hpp"
 #include "builtin_interfaces/msg/time.hpp"
 
-// #include <message_filters/subscriber.h>
-// #include <message_filters/synchronizer.h>
-// #include <message_filters/sync_policies/approximate_time.h>
-
-// #include <std_msgs/Empty.h>
-// #include <std_msgs/Float32.h>
-// #include <nav_msgs/Path.h>
-// #include <nav_msgs/Odometry.h>
-// #include <geometry_msgs/PointStamped.h>
-// #include <sensor_msgs/PointCloud2.h>
-// #include <sensor_msgs/Joy.h>
 #include <std_msgs/msg/float32.hpp>
 #include <std_msgs/msg/bool.hpp>
 #include <std_msgs/msg/empty.hpp>
@@ -28,8 +16,6 @@
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <sensor_msgs/msg/joy.hpp>
 
-// #include <tf/transform_datatypes.h>
-// #include <tf/transform_broadcaster.h>
 #include "tf2/transform_datatypes.h"
 #include "tf2_ros/transform_broadcaster.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
@@ -158,9 +144,6 @@ float trackYaw = 0;
 
 pcl::VoxelGrid<pcl::PointXYZ> downSizeFilter;
 
-// rclcpp::Node::SharedPtr nh;
-
-// void stateEstimationHandler(const nav_msgs::Odometry::ConstPtr& odom)
 void stateEstimationHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom)
 {
   if (stateInitDelay >= 0 && shiftGoalAtStart) {
@@ -173,9 +156,6 @@ void stateEstimationHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom)
     return;
   }
 
-  // double roll, pitch, yaw;
-  // geometry_msgs::Quaternion geoQuat = odom->pose.pose.orientation;
-  // tf::Matrix3x3(tf::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w)).getRPY(roll, pitch, yaw);
   double roll, pitch, yaw;
   geometry_msgs::msg::Quaternion geoQuat = odom->pose.pose.orientation;
   tf2::Matrix3x3(tf2::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w)).getRPY(roll, pitch, yaw);
@@ -205,7 +185,6 @@ void stateEstimationHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom)
 
   odomPointerLast = (odomPointerLast + 1) % odomQueLength;
 
-  // odomTime[odomPointerLast] = odom->header.stamp.toSec();
   odomTime[odomPointerLast] = rclcpp::Time(odom->header.stamp).seconds();
   odomRoll[odomPointerLast] = roll;
   odomPitch[odomPointerLast] = pitch;
@@ -215,7 +194,6 @@ void stateEstimationHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom)
   odomZ[odomPointerLast] = vehicleZ;
 }
 
-// void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr& laserCloud2)
 void laserCloudHandler(const sensor_msgs::msg::PointCloud2::ConstSharedPtr laserCloud2)
 {
   if (systemInitDelay > 0) {
@@ -227,7 +205,6 @@ void laserCloudHandler(const sensor_msgs::msg::PointCloud2::ConstSharedPtr laser
     return;
   }
 
-  //laserTime = laserCloud2->header.stamp.toSec() - depthCloudDelay;
   laserTime = odomTime[odomPointerLast] - depthCloudDelay;
 
   while (odomPointerFront != odomPointerLast) {
@@ -323,12 +300,8 @@ void laserCloudHandler(const sensor_msgs::msg::PointCloud2::ConstSharedPtr laser
   newlaserCloud = true;
 }
 
-// void trackPointHandler(const nav_msgs::Odometry::ConstPtr& odom)
 void trackPointHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom)
 {
-  // double roll, pitch, yaw;
-  // geometry_msgs::Quaternion geoQuat = odom->pose.pose.orientation;
-  // tf::Matrix3x3(tf::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w)).getRPY(roll, pitch, yaw);
   double roll, pitch, yaw;
   geometry_msgs::msg::Quaternion geoQuat = odom->pose.pose.orientation;
   tf2::Matrix3x3(tf2::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w)).getRPY(roll, pitch, yaw);
@@ -522,7 +495,6 @@ void readCorrespondences()
   fclose(filePtr);
 }
 
-// void joystickHandler(const sensor_msgs::Joy::ConstPtr& joy)
 void joystickHandler(const sensor_msgs::msg::Joy::ConstSharedPtr joy)
 {
   if (joy->axes[2] >= -0.1 || joy->axes[5] < -0.1) {
@@ -553,7 +525,6 @@ void joystickHandler(const sensor_msgs::msg::Joy::ConstSharedPtr joy)
   }
 }
 
-// void goalHandler(const geometry_msgs::PointStamped::ConstPtr& goal)
 void goalHandler(const geometry_msgs::msg::PointStamped::ConstSharedPtr goal)
 {
   goalX = goal->point.x;
@@ -563,7 +534,6 @@ void goalHandler(const geometry_msgs::msg::PointStamped::ConstSharedPtr goal)
   if (goalZ > maxElev) goalZ = maxElev;
 }
 
-// void autoModeHandler(const std_msgs::Float32::ConstPtr& autoMode)
 void autoModeHandler(const std_msgs::msg::Float32::ConstSharedPtr autoMode)
 {
   if (autonomyMode) {
@@ -579,7 +549,6 @@ void autoModeHandler(const std_msgs::msg::Float32::ConstSharedPtr autoMode)
   }
 }
 
-// void clearSurrCloudHandler(const std_msgs::Empty::ConstPtr& clear)
 void clearSurrCloudHandler(const std_msgs::msg::Empty::ConstSharedPtr clear)
 {
   laserCloudKeep->clear();
@@ -588,51 +557,8 @@ void clearSurrCloudHandler(const std_msgs::msg::Empty::ConstSharedPtr clear)
 
 int main(int argc, char** argv)
 {
-  // ros::init(argc, argv, "localPlanner");
-  // ros::NodeHandle nh;
-  // ros::NodeHandle nhPrivate = ros::NodeHandle("~");
-
   rclcpp::init(argc, argv);
   auto nh = rclcpp::Node::make_shared("localPlanner");
-
-  // nhPrivate.getParam("pathFolder", pathFolder);
-  // nhPrivate.getParam("stateEstimationTopic", stateEstimationTopic);
-  // nhPrivate.getParam("autonomyMode", autonomyMode);
-  // nhPrivate.getParam("depthCloudTopic", depthCloudTopic);
-  // nhPrivate.getParam("depthCloudDelay", depthCloudDelay);
-  // nhPrivate.getParam("depthCamPitchOffset", depthCamPitchOffset);
-  // nhPrivate.getParam("depthCamXOffset", depthCamXOffset);
-  // nhPrivate.getParam("depthCamYOffset", depthCamYOffset);
-  // nhPrivate.getParam("depthCamZOffset", depthCamZOffset);
-  // nhPrivate.getParam("trackingCamBackward", trackingCamBackward);
-  // nhPrivate.getParam("trackingCamXOffset", trackingCamXOffset);
-  // nhPrivate.getParam("trackingCamYOffset", trackingCamYOffset);
-  // nhPrivate.getParam("trackingCamZOffset", trackingCamZOffset);
-  // nhPrivate.getParam("trackingCamScale", trackingCamScale);
-  // nhPrivate.getParam("scanVoxelSize", scanVoxelSize);
-  // nhPrivate.getParam("pointPerPathThre", pointPerPathThre);
-  // nhPrivate.getParam("maxRange", maxRange);
-  // nhPrivate.getParam("maxElev", maxElev);
-  // nhPrivate.getParam("keepSurrCloud", keepSurrCloud);
-  // nhPrivate.getParam("keepHoriDis", keepHoriDis);
-  // nhPrivate.getParam("keepVertDis", keepVertDis);
-  // nhPrivate.getParam("lowerBoundZ", lowerBoundZ);
-  // nhPrivate.getParam("upperBoundZ", upperBoundZ);
-  // nhPrivate.getParam("pitchDiffLimit", pitchDiffLimit);
-  // nhPrivate.getParam("pitchWeight", pitchWeight);
-  // nhPrivate.getParam("sensorMaxPitch", sensorMaxPitch);
-  // nhPrivate.getParam("sensorMaxYaw", sensorMaxYaw);
-  // nhPrivate.getParam("yawDiffLimit", yawDiffLimit);
-  // nhPrivate.getParam("yawWeight", yawWeight);
-  // nhPrivate.getParam("pathScale", pathScale);
-  // nhPrivate.getParam("minPathScale", minPathScale);
-  // nhPrivate.getParam("pathScaleStep", pathScaleStep);
-  // nhPrivate.getParam("pathScaleBySpeed", pathScaleBySpeed);
-  // nhPrivate.getParam("stopDis", stopDis);
-  // nhPrivate.getParam("shiftGoalAtStart", shiftGoalAtStart);
-  // nhPrivate.getParam("goalX", goalX);
-  // nhPrivate.getParam("goalY", goalY);
-  // nhPrivate.getParam("goalZ", goalZ);
 
   nh->declare_parameter<std::string>("pathFolder", pathFolder);
   nh->declare_parameter<std::string>("stateEstimationTopic", stateEstimationTopic);
@@ -720,39 +646,28 @@ int main(int argc, char** argv)
     joyFwd = 1.0;
   }
 
-  // ros::Subscriber subStateEstimation = nh.subscribe<nav_msgs::Odometry> (stateEstimationTopic, 5, stateEstimationHandler);
   auto subStateEstimation = nh->create_subscription<nav_msgs::msg::Odometry>(stateEstimationTopic, 5, stateEstimationHandler);
 
-  // ros::Subscriber subLaserCloud = nh.subscribe<sensor_msgs::PointCloud2> (depthCloudTopic, 5, laserCloudHandler);
   auto subLaserCloud = nh->create_subscription<sensor_msgs::msg::PointCloud2>(depthCloudTopic, 5, laserCloudHandler);
 
-  // ros::Subscriber subTrackPoint = nh.subscribe<nav_msgs::Odometry> ("/track_point_odom", 5, trackPointHandler);
   auto subTrackPoint = nh->create_subscription<nav_msgs::msg::Odometry>("/track_point_odom", 5, trackPointHandler);
 
-  // ros::Subscriber subJoystick = nh.subscribe<sensor_msgs::Joy> ("/joy", 5, joystickHandler);
   auto subJoystick = nh->create_subscription<sensor_msgs::msg::Joy>("/joy", 5, joystickHandler);
 
-  // ros::Subscriber subGoal = nh.subscribe<geometry_msgs::PointStamped> ("/way_point", 5, goalHandler);
   auto subGoal = nh->create_subscription<geometry_msgs::msg::PointStamped> ("/way_point", 5, goalHandler);
 
-  // ros::Subscriber subAutoMode = nh.subscribe<std_msgs::Float32> ("/auto_mode", 5, autoModeHandler);
   auto subAutoMode = nh->create_subscription<std_msgs::msg::Float32> ("/auto_mode", 5, autoModeHandler);
 
-  // ros::Subscriber subClearSurrCloud = nh.subscribe<std_msgs::Empty> ("/clear_surr_cloud", 5, clearSurrCloudHandler);
   auto subClearSurrCloud = nh->create_subscription<std_msgs::msg::Empty> ("/clear_surr_cloud", 5, clearSurrCloudHandler);
 
-  // ros::Publisher pubPath = nh.advertise<nav_msgs::Path> ("/path", 5);
   auto pubPath = nh->create_publisher<nav_msgs::msg::Path>("/path", 5);
 
-  // nav_msgs::Path path;
   nav_msgs::msg::Path path;
 
 
   #if PLOTPATHSET == 1
-  // ros::Publisher pubFreePaths = nh.advertise<sensor_msgs::PointCloud2> ("/free_paths", 2);
   auto pubFreePaths = nh->create_publisher<sensor_msgs::msg::PointCloud2>("/free_paths", 2);
 
-  // ros::Publisher pubLaserCloud = nh.advertise<sensor_msgs::PointCloud2> ("/collision_avoidance_cloud", 2);
   auto pubLaserCloud = nh->create_publisher<sensor_msgs::msg::PointCloud2>("/collision_avoidance_cloud", 2);
   #endif
 
@@ -784,12 +699,9 @@ int main(int argc, char** argv)
 
   printf ("\nInitialization complete.\n\n");
 
-  // ros::Rate rate(100);
-  // bool status = ros::ok();
   rclcpp::Rate rate(100);
   bool status = rclcpp::ok();
   while (status) {
-    // ros::spinOnce();
     rclcpp::spin_some(nh);
 
     if (newlaserCloud) {
@@ -809,11 +721,6 @@ int main(int argc, char** argv)
       downSizeFilter.filter(*plannerCloud);
 
       #if PLOTPATHSET == 1
-      // sensor_msgs::PointCloud2 plannerCloud2;
-      // pcl::toROSMsg(*plannerCloud, plannerCloud2);
-      // plannerCloud2.header.stamp = ros::Time().fromSec(laserTime);
-      // plannerCloud2.header.frame_id = "map";
-      // pubLaserCloud.publish(plannerCloud2);
       sensor_msgs::msg::PointCloud2 plannerCloud2;
       pcl::toROSMsg(*plannerCloud, plannerCloud2);
       plannerCloud2.header.stamp = rclcpp::Time(static_cast<uint64_t>(laserTime * 1e9));
@@ -967,9 +874,6 @@ int main(int argc, char** argv)
             }
           }
 
-          // path.header.stamp = ros::Time().fromSec(laserTime);
-          // path.header.frame_id = "track_point";
-          // pubPath.publish(path);
           path.header.stamp = rclcpp::Time(static_cast<uint64_t>(laserTime * 1e9));
           path.header.frame_id = "track_point";
           pubPath->publish(path);
@@ -995,11 +899,6 @@ int main(int argc, char** argv)
             }
           }
 
-          // sensor_msgs::PointCloud2 freePaths2;
-          // pcl::toROSMsg(*freePaths, freePaths2);
-          // freePaths2.header.stamp = ros::Time().fromSec(laserTime);
-          // freePaths2.header.frame_id = "track_point";
-          // pubFreePaths.publish(freePaths2);
           sensor_msgs::msg::PointCloud2 freePaths2;
           pcl::toROSMsg(*freePaths, freePaths2);
           freePaths2.header.stamp = rclcpp::Time(static_cast<uint64_t>(laserTime * 1e9));
@@ -1022,20 +921,12 @@ int main(int argc, char** argv)
         path.poses[0].pose.position.y = 0;
         path.poses[0].pose.position.z = 0;
 
-        // path.header.stamp = ros::Time().fromSec(laserTime);
-        // path.header.frame_id = "track_point";
-        // pubPath.publish(path);
         path.header.stamp = rclcpp::Time(static_cast<uint64_t>(laserTime * 1e9));
         path.header.frame_id = "track_point";
         pubPath->publish(path);
 
         #if PLOTPATHSET == 1
         freePaths->clear();
-        // sensor_msgs::PointCloud2 freePaths2;
-        // pcl::toROSMsg(*freePaths, freePaths2);
-        // freePaths2.header.stamp = ros::Time().fromSec(laserTime);
-        // freePaths2.header.frame_id = "track_point";
-        // pubFreePaths.publish(freePaths2);
         sensor_msgs::msg::PointCloud2 freePaths2;
         pcl::toROSMsg(*freePaths, freePaths2);
         freePaths2.header.stamp = rclcpp::Time(static_cast<uint64_t>(laserTime * 1e9));
@@ -1045,7 +936,6 @@ int main(int argc, char** argv)
       }
     }
 
-    // status = ros::ok();
     status = rclcpp::ok();
     rate.sleep();
   }
