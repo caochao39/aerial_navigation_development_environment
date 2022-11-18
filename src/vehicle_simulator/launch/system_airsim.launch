@@ -1,62 +1,163 @@
-<launch>
+import os
 
-  <arg name="stateEstimationTopic" default="/state_estimation"/>
-  <arg name="depthCloudTopic" default="/airsim_node/drone0/cam/DepthCloud"/>
-  <arg name="depthCloudDelay" default="0"/>
-  <arg name="depthCamPitchOffset" default="0"/>
-  <arg name="depthCamXOffset" default="0.3"/>
-  <arg name="depthCamYOffset" default="0"/>
-  <arg name="depthCamZOffset" default="0"/>
-  <arg name="trackingCamBackward" default="false"/>
-  <arg name="trackingCamXOffset" default="0"/>
-  <arg name="trackingCamYOffset" default="0"/>
-  <arg name="trackingCamZOffset" default="0"/>
-  <arg name="trackingCamScale" default="1.0"/>
-  <arg name="vehicleX" default="0"/>
-  <arg name="vehicleY" default="0"/>
-  <arg name="vehicleZ" default="4.0"/>
-  <arg name="vehicleYaw" default="0"/>
-  <arg name="use_gazebo" default="false"/>
-  <arg name="gazebo_gui" default="true"/>
-  <arg name="world_name" default="office"/>
-  <arg name="config" default="outdoor"/>
-  <arg name="realtime_factor" default="1.0"/>
+from ament_index_python.packages import get_package_share_directory
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction, OpaqueFunction
+from launch.launch_description_sources import PythonLaunchDescriptionSource, FrontendLaunchDescriptionSource
+from launch_ros.actions import Node
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 
-  <include file="$(find-pkg-prefix ps3joy)/launch/ps3.launch" />
-  
-  <include file="$(find-pkg-prefix airsim_utils)/launch/depth_image_proc.launch" />
+def launch_local_planner_action(context, config, local_planner_launch_arguments):
+  config_str = str(config.perform(context))
+  start_local_planner = IncludeLaunchDescription(
+    FrontendLaunchDescriptionSource(os.path.join(
+      get_package_share_directory('local_planner'), 'launch', 'local_planner_' + config_str + '.launch')
+    ),
+    launch_arguments=local_planner_launch_arguments
+  )
+  return [start_local_planner]
 
-  <node pkg="airsim_utils" name="airsim_bridge" type="airsim_bridge.py" output="screen" />
 
-  <include file="$(find-pkg-prefix local_planner)/launch/local_planner_$(var config).launch" >
-    <arg name="stateEstimationTopic" value="$(var stateEstimationTopic)" />
-    <arg name="depthCloudTopic" value="$(var depthCloudTopic)" />
-    <arg name="depthCloudDelay" value="$(var depthCloudDelay)" />
-    <arg name="depthCamPitchOffset" value="$(var depthCamPitchOffset)" />
-    <arg name="depthCamXOffset" value="$(var depthCamXOffset)" />
-    <arg name="depthCamYOffset" value="$(var depthCamYOffset)" />
-    <arg name="depthCamZOffset" value="$(var depthCamZOffset)" />
-    <arg name="trackingCamBackward" value="$(var trackingCamBackward)" />
-    <arg name="trackingCamXOffset" value="$(var trackingCamXOffset)" />
-    <arg name="trackingCamYOffset" value="$(var trackingCamYOffset)" />
-    <arg name="trackingCamZOffset" value="$(var trackingCamZOffset)" />
-    <arg name="trackingCamScale" value="$(var trackingCamScale)" />
-  </include>
+def generate_launch_description():
+  stateEstimationTopic = LaunchConfiguration('stateEstimationTopic')
+  depthCloudTopic = LaunchConfiguration('depthCloudTopic')
+  depthCloudDelay = LaunchConfiguration('depthCloudDelay')
+  depthCamPitchOffset = LaunchConfiguration('depthCamPitchOffset')
+  depthCamXOffset = LaunchConfiguration('depthCamXOffset')
+  depthCamYOffset = LaunchConfiguration('depthCamYOffset')
+  depthCamZOffset = LaunchConfiguration('depthCamZOffset')
+  trackingCamBackward = LaunchConfiguration('trackingCamBackward')
+  trackingCamXOffset = LaunchConfiguration('trackingCamXOffset')
+  trackingCamYOffset = LaunchConfiguration('trackingCamYOffset')
+  trackingCamZOffset = LaunchConfiguration('trackingCamZOffset')
+  trackingCamScale = LaunchConfiguration('trackingCamScale')
+  vehicleX = LaunchConfiguration('vehicleX')
+  vehicleY = LaunchConfiguration('vehicleY')
+  vehicleZ = LaunchConfiguration('vehicleZ')
+  vehicleYaw = LaunchConfiguration('vehicleYaw')
+  use_gazebo = LaunchConfiguration('use_gazebo')
+  gazebo_gui = LaunchConfiguration('gazebo_gui')
+  world_name = LaunchConfiguration('world_name')
+  config = LaunchConfiguration('config')
+  realtime_factor = LaunchConfiguration('realtime_factor')
 
-  <include file="$(find-pkg-prefix vehicle_simulator)/launch/vehicle_simulator.launch" >
-    <arg name="sensorPitch" value="$(var depthCamPitchOffset)" />
-    <arg name="vehicleX" value="$(var vehicleX)" />
-    <arg name="vehicleY" value="$(var vehicleY)" />
-    <arg name="vehicleZ" value="$(var vehicleZ)" />
-    <arg name="vehicleYaw" value="$(var vehicleYaw)" />
-    <arg name="use_gazebo" value="$(var use_gazebo)" />
-    <arg name="gui" value="$(var gazebo_gui)" />
-    <arg name="world_name" value="$(var world_name)" />
-    <arg name="realtime_factor" value="$(var realtime_factor)" />
-  </include>
+  declare_stateEstimationTopic = DeclareLaunchArgument('stateEstimationTopic', default_value='/state_estimation', description='')
+  declare_depthCloudTopic = DeclareLaunchArgument('depthCloudTopic', default_value='/airsim_node/drone0/cam/DepthCloud', description='')
+  declare_depthCloudDelay = DeclareLaunchArgument('depthCloudDelay', default_value='0.0', description='')
+  declare_depthCamPitchOffset = DeclareLaunchArgument('depthCamPitchOffset', default_value='0.0', description='')
+  declare_depthCamXOffset = DeclareLaunchArgument('depthCamXOffset', default_value='0.0', description='')
+  declare_depthCamYOffset = DeclareLaunchArgument('depthCamYOffset', default_value='0.0', description='')
+  declare_depthCamZOffset = DeclareLaunchArgument('depthCamZOffset', default_value='0.0', description='')
+  declare_trackingCamBackward = DeclareLaunchArgument('trackingCamBackward', default_value='false', description='')
+  declare_trackingCamXOffset = DeclareLaunchArgument('trackingCamXOffset', default_value='0.0', description='')
+  declare_trackingCamYOffset = DeclareLaunchArgument('trackingCamYOffset', default_value='0.0', description='')
+  declare_trackingCamZOffset = DeclareLaunchArgument('trackingCamZOffset', default_value='0.0', description='')
+  declare_trackingCamScale = DeclareLaunchArgument('trackingCamScale', default_value='1.0', description='')
+  declare_vehicleX = DeclareLaunchArgument('vehicleX', default_value='0.0', description='')
+  declare_vehicleY = DeclareLaunchArgument('vehicleY', default_value='0.0', description='')
+  declare_vehicleZ = DeclareLaunchArgument('vehicleZ', default_value='1.0', description='')
+  declare_vehicleYaw = DeclareLaunchArgument('vehicleYaw', default_value='0.0', description='')
+  declare_use_gazebo = DeclareLaunchArgument('use_gazebo', default_value='false', description='')
+  declare_gazebo_gui = DeclareLaunchArgument('gazebo_gui', default_value='false', description='')
+  declare_world_name = DeclareLaunchArgument('world_name', default_value='office', description='')
+  declare_config = DeclareLaunchArgument('config', default_value='outdoor', description='')
+  declare_realtime_factor = DeclareLaunchArgument('realtime_factor', default_value='1.0', description='')
 
-  <node launch-prefix="nice" pkg="rviz" type="rviz" name="rvizAA" args="-d $(find-pkg-prefix vehicle_simulator)/rviz/vehicle_simulator_airsim.rviz" respawn="true"/>
+  start_depth_image_proc = IncludeLaunchDescription(
+    PythonLaunchDescriptionSource(os.path.join(
+      get_package_share_directory('airsim_utils'), 'launch', 'depth_image_proc.launch')
+    ) 
+  )
 
-  <node pkg="tf" type="static_transform_publisher" name="vehicleTransPublisher" args="0 0 0 -1.5707963 0 -1.5707963 /vehicle /rgbd_camera 1000"/>
+  start_airsim_bridge = Node(
+    package="airsim_utils",
+    executable="airsim_bridge.py",
+    output="screen"
+  )
 
-</launch>
+  start_vehicle_simulator = IncludeLaunchDescription(
+    PythonLaunchDescriptionSource(os.path.join(
+      get_package_share_directory('vehicle_simulator'), 'launch', 'vehicle_simulator.launch')
+    ),
+    launch_arguments={
+      'sensorPitch': depthCamPitchOffset,
+      'vehicleX': vehicleX,
+      'vehicleY': vehicleY,
+      'vehicleZ': vehicleZ,
+      'vehicleYaw': vehicleYaw,
+      'use_gazebo': use_gazebo,
+      'gui': gazebo_gui,
+      'world_name': world_name,
+      'realtime_factor': realtime_factor
+    }.items()
+  )
+
+  start_static_tf_publisher = Node(
+    package="tf2_ros",
+    executable="static_transform_publisher",
+    output="screen" ,
+    arguments=["0.0", "0.0", "0.0", "-1.5707963", "0.0", "-1.5707963", "vehicle", "rgbd_camera"]
+  )
+
+  rviz_config_file = os.path.join(get_package_share_directory('vehicle_simulator'), 'rviz', 'vehicle_simulator_airsim.rviz')
+  start_rviz = Node(
+    package='rviz2',
+    executable='rviz2',
+    arguments=['-d', rviz_config_file],
+    output='screen'
+  )
+
+  delayed_start_rviz = TimerAction(
+    period=8.0,
+    actions=[
+      start_rviz
+    ]
+  )
+
+  ld = LaunchDescription()
+
+  # Add the actions
+  ld.add_action(declare_stateEstimationTopic)
+  ld.add_action(declare_depthCloudTopic)
+  ld.add_action(declare_depthCloudDelay)
+  ld.add_action(declare_depthCamPitchOffset)
+  ld.add_action(declare_depthCamXOffset)
+  ld.add_action(declare_depthCamYOffset)
+  ld.add_action(declare_depthCamZOffset)
+  ld.add_action(declare_trackingCamBackward)
+  ld.add_action(declare_trackingCamXOffset)
+  ld.add_action(declare_trackingCamYOffset)
+  ld.add_action(declare_trackingCamZOffset)
+  ld.add_action(declare_trackingCamScale)
+  ld.add_action(declare_vehicleX)
+  ld.add_action(declare_vehicleY)
+  ld.add_action(declare_vehicleZ)
+  ld.add_action(declare_vehicleYaw)
+  ld.add_action(declare_use_gazebo)
+  ld.add_action(declare_gazebo_gui)
+  ld.add_action(declare_world_name)
+  ld.add_action(declare_config)
+  ld.add_action(declare_realtime_factor)
+
+  ld.add_action(start_depth_image_proc)
+  ld.add_action(start_airsim_bridge)
+  local_planner_launch_arguments = {
+      'stateEstimationTopic': stateEstimationTopic,
+      'depthCloudTopic': depthCloudTopic,
+      'depthCloudDelay': depthCloudDelay,
+      'depthCamPitchOffset': depthCamPitchOffset,
+      'depthCamXOffset': depthCamXOffset,
+      'depthCamYOffset': depthCamYOffset,
+      'depthCamZOffset': depthCamZOffset,
+      'trackingCamBackward': trackingCamBackward,
+      'trackingCamXOffset': trackingCamXOffset,
+      'trackingCamYOffset': trackingCamYOffset,
+      'trackingCamZOffset': trackingCamZOffset,
+      'trackingCamScale': trackingCamScale,
+  }.items()
+  ld.add_action(OpaqueFunction(function=launch_local_planner_action, args=[config, local_planner_launch_arguments]))
+  ld.add_action(start_vehicle_simulator)
+  ld.add_action(start_static_tf_publisher)
+  ld.add_action(delayed_start_rviz)
+
+  return ld
