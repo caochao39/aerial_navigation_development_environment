@@ -20,7 +20,7 @@
   <arg name="goalZ" default="1.0"/>
 
   <node pkg="local_planner" exec="localPlanner" name="localPlanner" output="screen">
-    <param name="pathFolder" value="$(find-pkg-prefix local_planner)/paths" />
+    <param name="pathFolder" value="$(find-pkg-share local_planner)/paths" />
     <param name="stateEstimationTopic" value="$(var stateEstimationTopic)" />
     <param name="autonomyMode" value="$(var autonomyMode)" />
     <param name="depthCloudTopic" value="$(var depthCloudTopic)" />

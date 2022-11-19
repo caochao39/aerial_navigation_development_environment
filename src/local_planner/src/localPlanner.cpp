@@ -638,8 +638,6 @@ int main(int argc, char** argv)
   nh->get_parameter("goalY", goalY);
   nh->get_parameter("goalZ", goalZ);
 
-  pathFolder.replace(pathFolder.find("/install/"), 8, "/src");
-
   if (goalZ > maxElev) goalZ = maxElev;
   if (autonomyMode) {
     manualMode = false;
@@ -661,9 +659,7 @@ int main(int argc, char** argv)
   auto subClearSurrCloud = nh->create_subscription<std_msgs::msg::Empty> ("/clear_surr_cloud", 5, clearSurrCloudHandler);
 
   auto pubPath = nh->create_publisher<nav_msgs::msg::Path>("/path", 5);
-
   nav_msgs::msg::Path path;
-
 
   #if PLOTPATHSET == 1
   auto pubFreePaths = nh->create_publisher<sensor_msgs::msg::PointCloud2>("/free_paths", 2);

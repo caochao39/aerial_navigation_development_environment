@@ -91,7 +91,6 @@ int main(int argc, char** argv)
   auto subControl = nh->create_subscription<geometry_msgs::msg::TwistStamped>("/attitude_control", 5, controlHandler);
 
   auto pubVehicleOdom = nh->create_publisher<nav_msgs::msg::Odometry>("/state_estimation", 5);
-
   nav_msgs::msg::Odometry odomData;
   odomData.header.frame_id = "map";
   odomData.child_frame_id = "vehicle";
@@ -110,8 +109,6 @@ int main(int argc, char** argv)
   auto request  = std::make_shared<gazebo_msgs::srv::SetEntityState::Request>();
 
   printf("\nSimulation started.\n\n");
-
-  tf2::Quaternion quat_tf;
 
   rclcpp::Rate rate(200 * realtimeFactor);
   bool status = rclcpp::ok();
@@ -161,6 +158,7 @@ int main(int argc, char** argv)
 
     rclcpp::Time timeNow = nh->now();
 
+    tf2::Quaternion quat_tf;
     quat_tf.setRPY(vehicleRoll, vehiclePitch, vehicleYaw);
     geometry_msgs::msg::Quaternion geoQuat;
     tf2::convert(quat_tf, geoQuat);
