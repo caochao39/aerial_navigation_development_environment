@@ -41,7 +41,7 @@ def generate_launch_description():
   declare_realtime_factor = DeclareLaunchArgument('realtime_factor', default_value='1.0', description='')
 
   start_control_tuner = IncludeLaunchDescription(
-    PythonLaunchDescriptionSource(os.path.join(
+    FrontendLaunchDescriptionSource(os.path.join(
       get_package_share_directory('control_tuner'), 'launch', 'control_tuner.launch')
     ),
     launch_arguments={
@@ -112,6 +112,7 @@ def generate_launch_description():
   ld.add_action(declare_world_name)
   ld.add_action(declare_realtime_factor)
 
+  ld.add_action(start_control_tuner)
   ld.add_action(start_vehicle_simulator)
   ld.add_action(start_static_tf_publisher)
   ld.add_action(delayed_start_rviz)
