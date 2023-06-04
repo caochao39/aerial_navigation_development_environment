@@ -144,6 +144,8 @@ float trackYaw = 0;
 
 pcl::VoxelGrid<pcl::PointXYZ> downSizeFilter;
 
+rclcpp::Node::SharedPtr nh;
+
 void stateEstimationHandler(const nav_msgs::msg::Odometry::ConstSharedPtr odom)
 {
   if (stateInitDelay >= 0 && shiftGoalAtStart) {
@@ -322,7 +324,7 @@ int readPlyHeader(FILE *filePtr)
   while (strCur != "end_header") {
     val = fscanf(filePtr, "%s", str);
     if (val != 1) {
-      printf ("\nError reading input files, exit.\n\n");
+      RCLCPP_INFO(nh->get_logger(), "Error reading input files, exit.");
       exit(1);
     }
 
@@ -332,7 +334,7 @@ int readPlyHeader(FILE *filePtr)
     if (strCur == "vertex" && strLast == "element") {
       val = fscanf(filePtr, "%d", &pointNum);
       if (val != 1) {
-        printf ("\nError reading input files, exit.\n\n");
+        RCLCPP_INFO(nh->get_logger(), "Error reading input files, exit.");
         exit(1);
       }
     }
@@ -347,7 +349,7 @@ void readStartPaths()
 
   FILE *filePtr = fopen(fileName.c_str(), "r");
   if (filePtr == NULL) {
-    printf ("\nCannot read input files, exit.\n\n");
+    RCLCPP_INFO(nh->get_logger(), "Cannot read input files, exit.");
     exit(1);
   }
 
@@ -362,7 +364,7 @@ void readStartPaths()
     val4 = fscanf(filePtr, "%d", &groupID);
 
     if (val1 != 1 || val2 != 1 || val3 != 1 || val4 != 1) {
-      printf ("\nError reading input files, exit.\n\n");
+      RCLCPP_INFO(nh->get_logger(), "Error reading input files, exit.");
         exit(1);
     }
 
@@ -381,7 +383,7 @@ void readPaths()
 
   FILE *filePtr = fopen(fileName.c_str(), "r");
   if (filePtr == NULL) {
-    printf ("\nCannot read input files, exit.\n\n");
+    RCLCPP_INFO(nh->get_logger(), "Cannot read input files, exit.");
     exit(1);
   }
 
@@ -399,7 +401,7 @@ void readPaths()
     val5 = fscanf(filePtr, "%f", &point.intensity);
 
     if (val1 != 1 || val2 != 1 || val3 != 1 || val4 != 1 || val5 != 1) {
-      printf ("\nError reading input files, exit.\n\n");
+      RCLCPP_INFO(nh->get_logger(), "Error reading input files, exit.");
         exit(1);
     }
 
@@ -422,12 +424,12 @@ void readPathList()
 
   FILE *filePtr = fopen(fileName.c_str(), "r");
   if (filePtr == NULL) {
-    printf ("\nCannot read input files, exit.\n\n");
+    RCLCPP_INFO(nh->get_logger(), "Cannot read input files, exit.");
     exit(1);
   }
 
   if (pathNum != readPlyHeader(filePtr)) {
-    printf ("\nIncorrect path number, exit.\n\n");
+    RCLCPP_INFO(nh->get_logger(), "Incorrect path number, exit.");
     exit(1);
   }
 
@@ -441,7 +443,7 @@ void readPathList()
     val5 = fscanf(filePtr, "%d", &groupID);
 
     if (val1 != 1 || val2 != 1 || val3 != 1 || val4 != 1 || val5 != 1) {
-      printf ("\nError reading input files, exit.\n\n");
+      RCLCPP_INFO(nh->get_logger(), "Error reading input files, exit.");
         exit(1);
     }
 
@@ -462,7 +464,7 @@ void readCorrespondences()
 
   FILE *filePtr = fopen(fileName.c_str(), "rb");
   if (filePtr == NULL) {
-    printf ("\nCannot read input files, exit.\n\n");
+    RCLCPP_INFO(nh->get_logger(), "Cannot read input files, exit.");
     exit(1);
   }
 
@@ -471,14 +473,14 @@ void readCorrespondences()
   for (int i = 0; i < gridVoxelNum; i++) {
     val1 = fread(&gridVoxelID, 4, 1, filePtr);
     if (val1 != 1) {
-      printf ("\nError reading input files, exit.\n\n");
+      RCLCPP_INFO(nh->get_logger(), "Error reading input files, exit.");
         exit(1);
     }
 
     while (1) {
       val1 = fread(&pathID, 2, 1, filePtr);
       if (val1 != 1) {
-        printf ("\nError reading input files, exit.\n\n");
+        RCLCPP_INFO(nh->get_logger(), "Error reading input files, exit.");
           exit(1);
       }
 
@@ -558,7 +560,7 @@ void clearSurrCloudHandler(const std_msgs::msg::Empty::ConstSharedPtr clear)
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto nh = rclcpp::Node::make_shared("localPlanner");
+  nh = rclcpp::Node::make_shared("localPlanner");
 
   nh->declare_parameter<std::string>("pathFolder", pathFolder);
   nh->declare_parameter<std::string>("stateEstimationTopic", stateEstimationTopic);
@@ -667,7 +669,7 @@ int main(int argc, char** argv)
   auto pubLaserCloud = nh->create_publisher<sensor_msgs::msg::PointCloud2>("/collision_avoidance_cloud", 2);
   #endif
 
-  printf ("\nReading path files.\n");
+  RCLCPP_INFO(nh->get_logger(), "Reading path files.");
 
   for (int i = 0; i < laserCloudStackNum; i++) {
     laserCloudStack[i].reset(new pcl::PointCloud<pcl::PointXYZ>());
@@ -693,7 +695,7 @@ int main(int argc, char** argv)
   readPathList();
   readCorrespondences();
 
-  printf ("\nInitialization complete.\n\n");
+  RCLCPP_INFO(nh->get_logger(), "Initialization complete.");
 
   rclcpp::Rate rate(100);
   bool status = rclcpp::ok();

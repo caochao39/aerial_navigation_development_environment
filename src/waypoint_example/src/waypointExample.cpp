@@ -40,12 +40,14 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr waypoints(new pcl::PointCloud<pcl::PointXYZ>
 float vehicleX = 0, vehicleY = 0, vehicleZ = 0;
 double curTime = 0, waypointTime = 0;
 
+rclcpp::Node::SharedPtr nh;
+
 // reading waypoints from file function
 void readWaypointFile()
 {
   FILE* waypoint_file = fopen(waypoint_file_dir.c_str(), "r");
   if (waypoint_file == NULL) {
-    printf ("\nCannot read input files, exit.\n\n");
+    RCLCPP_INFO(nh->get_logger(), "Cannot read input files, exit.");
     exit(1);
   }
 
@@ -55,7 +57,7 @@ void readWaypointFile()
   while (strCur != "end_header") {
     val = fscanf(waypoint_file, "%s", str);
     if (val != 1) {
-      printf ("\nError reading input files, exit.\n\n");
+      RCLCPP_INFO(nh->get_logger(), "Error reading input files, exit.");
       exit(1);
     }
 
@@ -65,7 +67,7 @@ void readWaypointFile()
     if (strCur == "vertex" && strLast == "element") {
       val = fscanf(waypoint_file, "%d", &pointNum);
       if (val != 1) {
-        printf ("\nError reading input files, exit.\n\n");
+        RCLCPP_INFO(nh->get_logger(), "Error reading input files, exit.");
         exit(1);
       }
     }
@@ -80,7 +82,7 @@ void readWaypointFile()
     val3 = fscanf(waypoint_file, "%f", &point.z);
 
     if (val1 != 1 || val2 != 1 || val3 != 1) {
-      printf ("\nError reading input files, exit.\n\n");
+      RCLCPP_INFO(nh->get_logger(), "Error reading input files, exit.");
       exit(1);
     }
 
@@ -102,7 +104,7 @@ void poseHandler(const nav_msgs::msg::Odometry::ConstSharedPtr pose)
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto nh = rclcpp::Node::make_shared("waypointExample");
+  nh = rclcpp::Node::make_shared("waypointExample");
 
   nh->declare_parameter<std::string>("waypoint_file_dir", waypoint_file_dir);
   nh->declare_parameter<double>("waypointXYRadius", waypointXYRadius);
@@ -136,7 +138,7 @@ int main(int argc, char** argv)
   int waypointSize = waypoints->points.size();
 
   if (waypointSize == 0) {
-    printf ("\nNo waypoint available, exit.\n\n");
+    RCLCPP_INFO(nh->get_logger(), "No waypoint available, exit.");
     exit(1);
   }
 

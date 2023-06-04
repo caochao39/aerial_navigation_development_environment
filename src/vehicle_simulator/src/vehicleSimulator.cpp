@@ -108,7 +108,7 @@ int main(int argc, char** argv)
   rclcpp::Client<gazebo_msgs::srv::SetEntityState>::SharedPtr client = nh->create_client<gazebo_msgs::srv::SetEntityState>("/set_entity_state");
   auto request  = std::make_shared<gazebo_msgs::srv::SetEntityState::Request>();
 
-  printf("\nSimulation started.\n\n");
+  RCLCPP_INFO(nh->get_logger(), "Simulation started.");
 
   rclcpp::Rate rate(200 * realtimeFactor);
   bool status = rclcpp::ok();

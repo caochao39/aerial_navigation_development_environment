@@ -894,7 +894,7 @@ int main(int argc, char** argv)
     fclose(desiredTrajFilePtr);
     fclose(executedTrajFilePtr);
 
-    printf("\nTrajectories saved.\n\n");
+    RCLCPP_INFO(nh->get_logger(), "Trajectories saved.");
   }
 
   return 0;
