@@ -101,6 +101,7 @@ def generate_launch_description():
         'vehicleY': vehicleY,
         'vehicleZ': vehicleZ,
         'vehicleYaw': vehicleYaw,
+        'use_sim_time': True
       }
       ],
       output='screen'
