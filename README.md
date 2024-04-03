@@ -24,6 +24,10 @@ Clone the open-source repository.
 
 ```git clone https://github.com/caochao39/aerial_navigation_development_environment.git```
 
+Additionally install Pygame(to control uav from keyboard)
+
+```python3 -m pip install -U pygame --user```
+
 In a terminal, go to the folder and compile.
 
 
@@ -50,6 +54,12 @@ In another terminal,
 ```rostopic echo /joy```
 
 Press any button on the controller and joystick messages should display in the terminal.
+
+Incase running with keyboard, run the python code in '/src/keyboard_trajectory_controller'.
+
+```cd /src/keyboard_trajectory_controller```
+
+```python3 keyboard_trajectory_controller.py```
 
 ## Quick Start with Gazebo Simulator
 
